@@ -1,4 +1,4 @@
-package com.example.whereami.model
+package com.example.whereami.domain.model
 
 import com.google.firebase.Timestamp
 

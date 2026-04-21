@@ -1,9 +1,8 @@
-package com.example.whereami.model
+package com.example.whereami.domain.model
 
 import com.google.firebase.Timestamp
 
 data class Score(
-    val gameId: String,
     val userId: String,
     val totalScore: Int,
     val lastUpdated: Timestamp
