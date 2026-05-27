@@ -32,17 +32,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
+import com.example.whereami.navigation.NavigationDestination
 
+object LoginDestination : NavigationDestination {
+    override val route= "login"
+}
 
-class LoginActivity: ComponentActivity(){
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            Scaffold(modifier = Modifier.fillMaxSize()){innerPadding->
-                LoginScreen(modifier=Modifier.padding(innerPadding))
-            }
-        }
+@Composable
+fun LoginActivity () {
+    Scaffold(modifier = Modifier.fillMaxSize()){innerPadding->
+        LoginScreen(modifier=Modifier.padding(innerPadding))
     }
 }
 
