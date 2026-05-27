@@ -36,6 +36,7 @@ object LoginDestination : NavigationDestination {
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
+    onGoBackClick: () -> Unit
 ){
     val context = LocalContext.current
     var username by remember { mutableStateOf("") }
@@ -70,9 +71,7 @@ fun LoginScreen(
             )
             Spacer(modifier = Modifier.weight(1f))
             ElevatedButton(
-                onClick = {
-                    context.finish()
-                }
+                onClick = onGoBackClick
             ) {
                 Text("Go Back")
             }

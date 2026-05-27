@@ -30,7 +30,9 @@ fun AppNavHost(
 
         composable (route = LoginDestination.route)
         {
-            LoginScreen()
+            LoginScreen(onGoBackClick = {
+                navController.popBackStack()
+            })
         }
     }
 }
