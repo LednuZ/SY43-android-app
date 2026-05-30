@@ -50,4 +50,26 @@ class SupabaseFriendRepository(private val client: SupabaseClient) : FriendRepos
             (friends1 + friends2).toSet()
         }
     }
+
+    override suspend fun getPendingFriendRequests(userId: String): Result<Set<String>> {
+        return runCatching {
+            client.from("friendships").select {
+                filter {
+                    eq("player_2_id", userId)
+                    eq("status", "PENDING")
+                }
+            }.decodeList<FriendDto>().map { it.player_1_id }.toSet()
+        }
+    }
+
+    override suspend fun getSentFriendRequests(userId: String): Result<Set<String>> {
+        return runCatching {
+            client.from("friendships").select {
+                filter {
+                    eq("player_1_id", userId)
+                    eq("status", "PENDING")
+                }
+            }.decodeList<FriendDto>().map { it.player_2_id }.toSet()
+        }
+    }
 }

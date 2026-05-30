@@ -48,7 +48,8 @@ object LoginDestination : NavigationDestination {
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
-    onGoBackClick: () -> Unit
+    onGoBackClick: () -> Unit,
+    onLoginSuccess: () -> Unit
 ){
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -124,6 +125,8 @@ fun LoginScreen(
                                         this.password = passStr
                                     }
                                     successMessage = "Logged in successfully!"
+                                    kotlinx.coroutines.delay(500)
+                                    onLoginSuccess()
                                 } catch (e: Exception) {
                                     errorMessage = e.message ?: "Login failed"
                                 } finally {
@@ -151,7 +154,7 @@ fun LoginScreen(
                                         this.email = email
                                         this.password = passStr
                                     }
-                                    successMessage = "Account created! You can now log in."
+                                    successMessage = "Account created! Logging you in..."
                                 } catch (e: Exception) {
                                     errorMessage = e.message ?: "Sign up failed"
                                 } finally {

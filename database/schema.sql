@@ -168,3 +168,21 @@ $$;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+
+CREATE POLICY "Allow logged-in users to search" 
+ON public.users 
+FOR SELECT 
+USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Users can read their own friendships" 
+ON public.friendships FOR SELECT 
+USING (auth.uid() = player_1_id OR auth.uid() = player_2_id);
+
+CREATE POLICY "Users can insert their own friend requests" 
+ON public.friendships FOR INSERT 
+WITH CHECK (auth.uid() = player_1_id);
+
+CREATE POLICY "Users can update requests sent to them" 
+ON public.friendships FOR UPDATE 
+USING (auth.uid() = player_2_id)
+WITH CHECK (auth.uid() = player_2_id);

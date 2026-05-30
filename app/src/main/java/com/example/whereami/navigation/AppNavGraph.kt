@@ -9,6 +9,10 @@ import com.example.whereami.LoginDestination
 import com.example.whereami.LoginScreen
 import com.example.whereami.ui.screens.HomeDestination
 import com.example.whereami.ui.screens.HomeScreen
+import com.example.whereami.ui.screens.FriendsDestination
+import com.example.whereami.ui.screens.FriendsScreen
+import com.example.whereami.data.remote.SupabaseProvider
+import io.github.jan.supabase.auth.auth
 
 @Composable
 fun AppNavHost(
@@ -23,16 +27,31 @@ fun AppNavHost(
     ){
         composable (route = HomeDestination.route)
         {
-            HomeScreen(onLoginClick = {
-                navController.navigate(LoginDestination.route)
-            })
+            HomeScreen(
+                onLoginClick = { navController.navigate(LoginDestination.route) },
+                onFriendsClick = { navController.navigate(FriendsDestination.route) }
+            )
         }
 
         composable (route = LoginDestination.route)
         {
-            LoginScreen(onGoBackClick = {
-                navController.popBackStack()
-            })
+            LoginScreen(
+                onGoBackClick = {
+                    navController.popBackStack()
+                },
+                onLoginSuccess = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        composable (route = FriendsDestination.route) {
+            val session = SupabaseProvider.client.auth.currentSessionOrNull()
+            if (session?.user != null) {
+                FriendsScreen(
+                    currentUser = session.user!!,
+                    onNavigateUp = { navController.popBackStack() }
+                )
+            }
         }
     }
 }
