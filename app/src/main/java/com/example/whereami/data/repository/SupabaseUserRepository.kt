@@ -5,7 +5,7 @@ import com.example.whereami.domain.model.User
 import com.example.whereami.domain.repository.UserRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 class SupabaseUserRepository(private val client: SupabaseClient) : UserRepository {
 
@@ -49,7 +49,8 @@ class SupabaseUserRepository(private val client: SupabaseClient) : UserRepositor
             lastName = last_name,
             phoneNumber = phone_number,
             createdAt = Instant.parse(created_at),
-            gamesPlayed = games_played
+            guessCount = guess_count,
+            profilePicture = profile_picture
         )
     }
 
@@ -62,7 +63,8 @@ class SupabaseUserRepository(private val client: SupabaseClient) : UserRepositor
             last_name = lastName,
             phone_number = phoneNumber,
             created_at = createdAt.toString(),
-            games_played = gamesPlayed
+            guess_count = guessCount,
+            profile_picture = profilePicture
         )
     }
 }

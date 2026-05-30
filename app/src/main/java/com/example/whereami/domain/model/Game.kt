@@ -1,6 +1,6 @@
 package com.example.whereami.domain.model
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 enum class GameStatus { CREATED, PLAYING, FINISHED }
 data class Game(

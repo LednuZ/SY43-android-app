@@ -11,5 +11,6 @@ data class UserDto(
     val last_name: String? = null,
     val phone_number: String? = null,
     val created_at: String,
-    val games_played: Int = 0
+    val guess_count: Int = 0,
+    val profile_picture: String? = null
 )

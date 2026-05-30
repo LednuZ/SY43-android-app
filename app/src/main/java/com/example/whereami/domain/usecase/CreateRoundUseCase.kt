@@ -26,11 +26,15 @@ class CreateRoundUseCase(private val gameRepository: GameRepository) {
 
         val roundId = "round_${gameId}_${System.currentTimeMillis()}"
         val nextRoundIndex = game.currentRoundIndex + 1
+        val startTime = kotlin.time.Instant.fromEpochMilliseconds(System.currentTimeMillis())
+        val endTime = startTime.plus(kotlin.time.Duration.parse("${game.settings.roundDurationMinutes}m"))
         val round = Round(
             id = roundId,
             gameId = gameId,
             index = nextRoundIndex,
-            status = RoundStatus.CREATED
+            status = RoundStatus.CREATED,
+            startTime = startTime,
+            endTime = endTime
         )
 
         val updatedGame = game.copy(

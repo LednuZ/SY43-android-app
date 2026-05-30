@@ -22,7 +22,7 @@ class CreateGameUseCase(
             settings = settings,
             currentRoundIndex = 0,
             status = GameStatus.CREATED,
-            scoreSheets = group.memberIds.map { memberId -> Score(memberId, 0, kotlin.time.Clock.System.now()) }
+            scoreSheets = group.memberIds.map { memberId -> Score(gameId, memberId, 0, kotlin.time.Clock.System.now()) }
         )
 
         gameRepository.createGame(game).getOrThrow()

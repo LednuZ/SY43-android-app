@@ -20,9 +20,10 @@ data class GameDto(
 data class GameScoreDto(
     val id: String? = null,
     val game_id: String,
-    val user_id: String,
-    val total_score: Int,
-    val rank: Int? = null
+    val player_id: String,
+    val score: Int,
+    val rank: Int? = null,
+    val date_last_update: String? = null
 )
 
 @Serializable
@@ -30,7 +31,9 @@ data class RoundDto(
     val id: String? = null,
     val game_id: String,
     val index: Int,
-    val status: String
+    val status: String,
+    val start_time: String,
+    val end_time: String
 )
 
 @Serializable
@@ -55,5 +58,6 @@ data class GuessDto(
     val latitude: Double,
     val longitude: Double,
     val guessed_at: String,
-    val distance_meters: Double
+    val distance_meters: Double,
+    val guess_score: Int
 )

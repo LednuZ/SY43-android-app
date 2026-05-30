@@ -1,6 +1,6 @@
 package com.example.whereami.domain.model
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 data class User(
     val id: String,
@@ -10,5 +10,6 @@ data class User(
     val lastName: String?,
     val phoneNumber: String?,
     val createdAt: Instant,
-    val gamesPlayed: Int
+    val guessCount: Int,
+    val profilePicture: String?
 )

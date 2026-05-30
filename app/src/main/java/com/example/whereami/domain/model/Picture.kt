@@ -1,6 +1,6 @@
 package com.example.whereami.domain.model
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import com.example.whereami.domain.model.util.LatLng
 
 data class Picture(

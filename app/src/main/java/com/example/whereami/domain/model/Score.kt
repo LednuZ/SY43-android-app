@@ -1,9 +1,10 @@
 package com.example.whereami.domain.model
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 data class Score(
-    val userId: String,
-    val totalScore: Int,
+    val gameId: String,
+    val playerId: String,
+    val score: Int,
     val lastUpdated: Instant
 )

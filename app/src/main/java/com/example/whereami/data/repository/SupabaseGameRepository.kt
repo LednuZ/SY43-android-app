@@ -6,7 +6,7 @@ import com.example.whereami.domain.model.util.LatLng
 import com.example.whereami.domain.repository.GameRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 class SupabaseGameRepository(private val client: SupabaseClient) : GameRepository {
 
@@ -28,8 +28,7 @@ class SupabaseGameRepository(private val client: SupabaseClient) : GameRepositor
             client.from("games").update(dto) {
                 filter { eq("id", game.id) }
             }
-            
-            // Upsert scores
+
             val scoreDtos = game.scoreSheets.map { it.toDto(game.id) }
             if (scoreDtos.isNotEmpty()) {
                 client.from("game_scores").upsert(scoreDtos)
@@ -105,7 +104,7 @@ class SupabaseGameRepository(private val client: SupabaseClient) : GameRepositor
             ),
             currentRoundIndex = current_round_index,
             listRounds = rounds.toMutableList(),
-            listPlayers = scores.map { it.userId }.toMutableList(),
+            listPlayers = scores.map { it.playerId }.toMutableList(),
             status = GameStatus.valueOf(status),
             scoreSheets = scores
         )
@@ -129,7 +128,9 @@ class SupabaseGameRepository(private val client: SupabaseClient) : GameRepositor
             id = if (id.isEmpty()) null else id,
             game_id = gameId,
             index = index,
-            status = status.name
+            status = status.name,
+            start_time = startTime.toString(),
+            end_time = endTime.toString()
         )
     }
 
@@ -153,7 +154,9 @@ class SupabaseGameRepository(private val client: SupabaseClient) : GameRepositor
             gameId = game_id,
             index = index,
             status = RoundStatus.valueOf(status),
-            posts = pictures.toMutableList()
+            posts = pictures.toMutableList(),
+            startTime = Instant.parse(start_time),
+            endTime = Instant.parse(end_time)
         )
     }
 
@@ -172,17 +175,19 @@ class SupabaseGameRepository(private val client: SupabaseClient) : GameRepositor
     
     private fun GameScoreDto.toDomain(): Score {
         return Score(
-            userId = user_id,
-            totalScore = total_score,
-            lastUpdated = Instant.fromEpochMilliseconds(0) // We can add an updated_at to the schema later
+            gameId = game_id,
+            playerId = player_id,
+            score = score,
+            lastUpdated = date_last_update?.let { Instant.parse(it) } ?: Instant.fromEpochMilliseconds(0)
         )
     }
     
     private fun Score.toDto(gameId: String): GameScoreDto {
         return GameScoreDto(
             game_id = gameId,
-            user_id = userId,
-            total_score = totalScore
+            player_id = playerId,
+            score = score,
+            date_last_update = lastUpdated.toString()
         )
     }
 }

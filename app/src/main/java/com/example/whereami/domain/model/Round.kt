@@ -7,5 +7,7 @@ data class Round(
     val gameId: String,
     val posts: MutableList<Picture> = mutableListOf(),
     val index: Int,
-    val status: RoundStatus
+    val status: RoundStatus,
+    val startTime: kotlin.time.Instant,
+    val endTime: kotlin.time.Instant
 )

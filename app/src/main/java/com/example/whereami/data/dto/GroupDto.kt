@@ -6,13 +6,14 @@ import kotlinx.serialization.Serializable
 data class GroupDto(
     val id: String? = null,
     val name: String,
-    val created_at: String? = null,
-    val created_by: String? = null
+    val created_at: String? = null
 )
 
 @Serializable
 data class GroupMemberDto(
     val group_id: String,
     val user_id: String,
+    val role: String = "MEMBER",
+    val settings_notification: Boolean = true,
     val joined_at: String? = null
 )

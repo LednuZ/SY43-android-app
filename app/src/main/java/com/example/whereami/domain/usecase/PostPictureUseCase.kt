@@ -3,8 +3,8 @@ package com.example.whereami.domain.usecase
 import com.example.whereami.domain.model.*
 import com.example.whereami.domain.model.util.LatLng
 import com.example.whereami.domain.repository.GameRepository
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+
+import kotlin.time.Instant
 
 // Basic specs :
 // user provides imageUrl, location and optionally a description
@@ -50,7 +50,7 @@ class PostPictureUseCase(private val gameRepository: GameRepository) {
             imageUrl = imageUrl,
             location = location,
             description = description,
-            createdAt = kotlinx.datetime.Instant.fromEpochMilliseconds(java.lang.System.currentTimeMillis())
+            createdAt = kotlin.time.Instant.fromEpochMilliseconds(java.lang.System.currentTimeMillis())
         )
 
         val updatedRound = round.copy(

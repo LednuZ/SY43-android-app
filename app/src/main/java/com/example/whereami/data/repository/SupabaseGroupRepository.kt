@@ -6,7 +6,7 @@ import com.example.whereami.domain.model.Group
 import com.example.whereami.domain.repository.GroupRepository
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.SupabaseClient
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 class SupabaseGroupRepository(private val client: SupabaseClient) : GroupRepository {
 
@@ -31,8 +31,7 @@ class SupabaseGroupRepository(private val client: SupabaseClient) : GroupReposit
     override suspend fun createGroup(group: Group): Result<String> {
         return runCatching {
             val dto = GroupDto(
-                name = group.name,
-                created_by = group.memberIds.firstOrNull() // assuming creator is first member or user
+                name = group.name
             )
             val result = client.from("groups").insert(dto) {
                 select()
@@ -41,7 +40,7 @@ class SupabaseGroupRepository(private val client: SupabaseClient) : GroupReposit
 
             // Insert members
             val members = group.memberIds.map { userId ->
-                GroupMemberDto(group_id = groupId, user_id = userId)
+                GroupMemberDto(group_id = groupId, user_id = userId, role = "MEMBER")
             }
             if (members.isNotEmpty()) {
                 client.from("group_members").insert(members)
@@ -53,7 +52,7 @@ class SupabaseGroupRepository(private val client: SupabaseClient) : GroupReposit
 
     override suspend fun addMember(groupId: String, userId: String): Result<Unit> {
         return runCatching {
-            val dto = GroupMemberDto(group_id = groupId, user_id = userId)
+            val dto = GroupMemberDto(group_id = groupId, user_id = userId, role = "MEMBER")
             client.from("group_members").insert(dto)
         }
     }

@@ -1,6 +1,6 @@
 package com.example.whereami.domain.model
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import com.example.whereami.domain.model.util.LatLng
 
 data class Guess(
@@ -10,5 +10,6 @@ data class Guess(
     val pictureId: String,
     val guessedLocation: LatLng,
     val guessedAt: Instant,
-    val distanceMeters: Double
+    val distanceMeters: Double,
+    val guessScore: Int
 )
