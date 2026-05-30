@@ -7,6 +7,4 @@ interface GameRepository {
     suspend fun saveGame(game: Game): Result<Unit>
     suspend fun getActiveGame(groupId: String): Result<Game?>
     suspend fun createGame(game: Game): Result<String>
-    suspend fun createRound(round: Round): Result<String>
-    suspend fun getCurrentRound(game: Game): Result<Round?>
 }

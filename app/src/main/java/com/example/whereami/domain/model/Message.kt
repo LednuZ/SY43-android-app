@@ -1,11 +1,11 @@
 package com.example.whereami.domain.model
 
-import com.google.firebase.Timestamp
+import kotlinx.datetime.Instant
 
 data class Message(
     val id: String,
     val groupId: String,
     val senderId: String,
     val text: String,
-    val createdAt: Timestamp
+    val createdAt: Instant
 )

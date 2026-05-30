@@ -1,10 +1,10 @@
 package com.example.whereami.domain.model
 
-import com.google.firebase.Timestamp
+import kotlinx.datetime.Instant
 
 data class Group(
     val id: String,
     val name: String,
-    val createdAt: Timestamp,
-    val memberIds: List<String>
+    val createdAt: Instant,
+    val memberIds: MutableList<String> = mutableListOf()
 )

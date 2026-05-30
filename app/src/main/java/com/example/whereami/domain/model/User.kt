@@ -1,6 +1,6 @@
 package com.example.whereami.domain.model
 
-import com.google.firebase.Timestamp
+import kotlinx.datetime.Instant
 
 data class User(
     val id: String,
@@ -9,6 +9,6 @@ data class User(
     val firstName: String?,
     val lastName: String?,
     val phoneNumber: String?,
-    val createdAt: Timestamp,
+    val createdAt: Instant,
     val gamesPlayed: Int
 )

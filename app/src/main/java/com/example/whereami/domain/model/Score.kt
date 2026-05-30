@@ -1,9 +1,9 @@
 package com.example.whereami.domain.model
 
-import com.google.firebase.Timestamp
+import kotlinx.datetime.Instant
 
 data class Score(
     val userId: String,
     val totalScore: Int,
-    val lastUpdated: Timestamp
+    val lastUpdated: Instant
 )

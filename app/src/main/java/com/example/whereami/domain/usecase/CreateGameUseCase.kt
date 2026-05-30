@@ -3,9 +3,10 @@ package com.example.whereami.domain.usecase
 import com.example.whereami.domain.model.*
 import com.example.whereami.domain.repository.GameRepository
 import com.example.whereami.domain.repository.GroupRepository
-import com.google.firebase.Timestamp
 
-class CreateGameUseCase(private val gameRepository: GameRepository, private val groupRepository: GroupRepository) {
+class CreateGameUseCase(
+    private val gameRepository: GameRepository,
+    private val groupRepository: GroupRepository) {
     suspend operator fun invoke(groupId: String, settings: GameSettings): CreateGameResult {
         val group = groupRepository.getGroup(groupId).getOrThrow() ?: return CreateGameResult.GroupNotFound
 
@@ -19,9 +20,9 @@ class CreateGameUseCase(private val gameRepository: GameRepository, private val 
             id = gameId,
             groupId = groupId,
             settings = settings,
-            currentRound = null,
+            currentRoundIndex = 0,
             status = GameStatus.CREATED,
-            scoreSheets = group.memberIds.map { memberId -> Score(memberId, 0, Timestamp.now()) }
+            scoreSheets = group.memberIds.map { memberId -> Score(memberId, 0, kotlin.time.Clock.System.now()) }
         )
 
         gameRepository.createGame(game).getOrThrow()
