@@ -90,15 +90,18 @@ class FriendsViewModel(
         val fromUserId = currentUserId ?: return
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-            val result = sendFriendRequestUseCase(fromUserId, toUserId)
-            if (result.isSuccess) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    successMessage = "Friend request sent!"
-                )
-                fetchFriends()
-            } else {
-                _uiState.value = _uiState.value.copy(isLoading = false, error = "Failed to send request: ${result.exceptionOrNull()?.message}")
+            when (val result = sendFriendRequestUseCase(fromUserId, toUserId)) {
+                is SendRequestResult.Success -> {
+                    _uiState.value = _uiState.value.copy(isLoading = false, successMessage = "Friend request sent!")
+                    fetchFriends()
+                }
+                is SendRequestResult.AutoAccepted -> {
+                    _uiState.value = _uiState.value.copy(isLoading = false, successMessage = "They already invited you! You are now friends!")
+                    fetchFriends()
+                }
+                is SendRequestResult.Error -> {
+                    _uiState.value = _uiState.value.copy(isLoading = false, error = result.message)
+                }
             }
         }
     }
@@ -107,11 +110,13 @@ class FriendsViewModel(
         val toUserId = currentUserId ?: return
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-            val result = acceptFriendRequestUseCase(fromUserId, toUserId)
-            if (result.isSuccess) {
-                fetchFriends() 
-            } else {
-                _uiState.value = _uiState.value.copy(isLoading = false, error = "Failed to accept request: ${result.exceptionOrNull()?.message}")
+            when (val result = acceptFriendRequestUseCase(fromUserId, toUserId)) {
+                is AcceptRequestResult.Success -> {
+                    fetchFriends()
+                }
+                is AcceptRequestResult.Error -> {
+                    _uiState.value = _uiState.value.copy(isLoading = false, error = result.message)
+                }
             }
         }
     }
@@ -135,7 +140,7 @@ class FriendsViewModel(
                 return FriendsViewModel(
                     getFriendsUseCase = GetFriendsUseCase(friendRepo, userRepo),
                     searchUsersUseCase = SearchUsersUseCase(userRepo),
-                    sendFriendRequestUseCase = SendFriendRequestUseCase(friendRepo),
+                    sendFriendRequestUseCase = SendFriendRequestUseCase(friendRepo, userRepo),
                     acceptFriendRequestUseCase = AcceptFriendRequestUseCase(friendRepo)
                 ) as T
             }
