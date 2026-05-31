@@ -152,18 +152,29 @@ CREATE TABLE user_settings (
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger
 LANGUAGE plpgsql
-SECURITY DEFINER SET search_path = ''
+SECURITY DEFINER SET search_path = public
 AS $$
+DECLARE
+  base_username TEXT;
+  final_username TEXT;
 BEGIN
+  base_username := COALESCE(NEW.raw_user_meta_data->>'username', split_part(NEW.email, '@', 1));
+  final_username := base_username;
+  
+  WHILE EXISTS (SELECT 1 FROM public.users WHERE username = final_username) LOOP
+    final_username := base_username || '_' || substr(md5(random()::text), 1, 4);
+  END LOOP;
+
   INSERT INTO public.users (id, username, email)
   VALUES (
     NEW.id,
-    COALESCE(NEW.raw_user_meta_data->>'username', split_part(NEW.email, '@', 1)),
+    final_username,
     NEW.email
   );
   RETURN NEW;
 END;
 $$;
+
 
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
@@ -217,4 +228,49 @@ USING (auth.role() = 'authenticated');
 
 CREATE POLICY "Users can leave or remove members" 
 ON public.group_members FOR DELETE 
+USING (auth.role() = 'authenticated');
+
+-- RLS for Games
+ALTER TABLE public.games ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can insert games" 
+ON public.games FOR INSERT 
+WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Users can view games they belong to" 
+ON public.games FOR SELECT 
+USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Users can update active games" 
+ON public.games FOR UPDATE 
+USING (auth.role() = 'authenticated');
+
+-- RLS for Rounds
+ALTER TABLE public.rounds ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can insert rounds" 
+ON public.rounds FOR INSERT 
+WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Users can view rounds" 
+ON public.rounds FOR SELECT 
+USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Users can update rounds" 
+ON public.rounds FOR UPDATE 
+USING (auth.role() = 'authenticated');
+
+-- RLS for Game Scores
+ALTER TABLE public.game_scores ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can insert game scores" 
+ON public.game_scores FOR INSERT 
+WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Users can view game scores" 
+ON public.game_scores FOR SELECT 
+USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Users can update their scores" 
+ON public.game_scores FOR UPDATE 
 USING (auth.role() = 'authenticated');

@@ -36,7 +36,6 @@ class FriendsViewModel(
     private var currentUserId: String? = null
 
     fun initialize(userId: String) {
-        if (currentUserId == userId) return
         currentUserId = userId
         fetchFriends()
     }

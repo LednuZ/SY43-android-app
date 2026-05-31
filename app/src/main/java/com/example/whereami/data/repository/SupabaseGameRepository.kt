@@ -54,18 +54,19 @@ class SupabaseGameRepository(private val client: SupabaseClient) : GameRepositor
     override suspend fun createGame(game: Game): Result<String> {
         return runCatching {
             val dto = game.toDto()
-            val result = client.from("games").insert(dto) {
-                select()
-            }.decodeSingle<GameDto>()
+            client.from("games").insert(dto)
             
-            val gameId = result.id ?: throw Exception("Failed to get created game id")
+            val roundDtos = game.rounds.map { it.toDto() }
+            if (roundDtos.isNotEmpty()) {
+                client.from("rounds").insert(roundDtos)
+            }
             
-            val scoreDtos = game.scoreSheets.map { it.toDto(gameId) }
+            val scoreDtos = game.scoreSheets.map { it.toDto(game.id) }
             if (scoreDtos.isNotEmpty()) {
                 client.from("game_scores").insert(scoreDtos)
             }
             
-            gameId
+            game.id
         }
     }
 
@@ -103,8 +104,8 @@ class SupabaseGameRepository(private val client: SupabaseClient) : GameRepositor
                 dateEnd = Instant.parse(date_end)
             ),
             currentRoundIndex = current_round_index,
-            listRounds = rounds.toMutableList(),
-            listPlayers = scores.map { it.playerId }.toMutableList(),
+            rounds = rounds,
+            playerIds = scores.map { it.playerId },
             status = GameStatus.valueOf(status),
             scoreSheets = scores
         )

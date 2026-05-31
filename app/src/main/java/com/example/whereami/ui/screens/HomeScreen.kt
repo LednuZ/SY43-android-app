@@ -86,7 +86,7 @@ fun DashboardScreen(
             modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = MaterialTheme.shapes.medium
         ) {
-            Text("Create New Game Group", fontSize = 16.sp)
+            Text("My Groups", fontSize = 16.sp)
         }
         
         Spacer(modifier = Modifier.height(16.dp))

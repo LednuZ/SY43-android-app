@@ -27,7 +27,6 @@ class SendFriendRequestUseCase(
             return SendRequestResult.Error("You already sent a request to this user.")
         }
 
-        // if the other user has sent a request to us, accept it
         val incomingRequests = friendRepository.getPendingFriendRequests(fromId).getOrNull() ?: emptySet()
         if (incomingRequests.contains(toId)) {
             friendRepository.acceptFriendRequest(from = toId, to = fromId)

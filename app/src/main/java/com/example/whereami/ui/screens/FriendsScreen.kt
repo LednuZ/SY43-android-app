@@ -74,7 +74,7 @@ fun FriendsScreen(
                     viewModel.searchUsers(it)
                 },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Search by username or email") },
+                label = { Text("Search by username") },
                 singleLine = true
             )
             
@@ -183,7 +183,6 @@ fun UserRow(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = user.username, style = MaterialTheme.typography.bodyLarge)
-                Text(text = user.email, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (actionIcon != null) {
                 IconButton(onClick = onActionClick) {

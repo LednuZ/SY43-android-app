@@ -8,25 +8,21 @@ data class Game(
     val groupId: String,
     val settings: GameSettings,
     val currentRoundIndex: Int = 0,
-    val listRounds: MutableList<Round> = mutableListOf(),
-    val listPlayers: MutableList<String> = mutableListOf(),
-    val status: GameStatus,
-    val scoreSheets: List<Score> = mutableListOf()
+    val rounds: List<Round> = emptyList(),
+    val playerIds: List<String> = emptyList(),
+    val scoreSheets: List<Score> = emptyList(),
+    val status: GameStatus
 )
 
 fun Game.getCurrentRound(): Round? {
-    return this.listRounds.firstOrNull { round -> round.index == this.currentRoundIndex }
+    return this.rounds.firstOrNull { round -> round.index == this.currentRoundIndex }
 }
 
 fun Game.updateRoundInGame(round: Round): Game {
     return this.copy(
-        listRounds = this.listRounds.map {
-            if (it.id == round.id) {
-                round
-            } else {
-                it
-            }
-        }.toMutableList()
+        rounds = this.rounds.map {
+            if (it.id == round.id) round else it
+        }
     )
 }
 

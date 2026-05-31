@@ -33,7 +33,6 @@ class SupabaseUserRepository(private val client: SupabaseClient) : UserRepositor
                 filter {
                     or {
                         ilike("username", "%$query%")
-                        ilike("email", "%$query%")
                     }
                 }
             }.decodeList<UserDto>().map { it.toDomain() }

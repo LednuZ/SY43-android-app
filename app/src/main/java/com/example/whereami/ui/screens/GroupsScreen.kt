@@ -1,5 +1,6 @@
 package com.example.whereami.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -27,6 +28,7 @@ fun GroupsScreen(
     currentUser: UserInfo,
     onNavigateUp: () -> Unit,
     onCreateGroupClick: () -> Unit,
+    onGroupClick: (String) -> Unit,
     viewModel: GroupsViewModel = viewModel(factory = GroupsViewModel.provideFactory())
 ) {
     LaunchedEffect(currentUser.id) {
@@ -81,7 +83,10 @@ fun GroupsScreen(
                     }
                 } else {
                     items(uiState.groups) { group ->
-                        GroupRow(group = group)
+                        GroupRow(
+                            group = group,
+                            onClick = { onGroupClick(group.id) }
+                        )
                     }
                 }
             }
@@ -90,11 +95,12 @@ fun GroupsScreen(
 }
 
 @Composable
-fun GroupRow(group: Group) {
+fun GroupRow(group: Group, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 4.dp)
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Row(

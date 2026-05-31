@@ -8,7 +8,6 @@ import com.example.whereami.domain.repository.GameRepository
 
 class EndRoundUseCase(
     private val gameRepository: GameRepository,
-    private val createRoundUseCase: CreateRoundUseCase,
     private val endGameUseCase: EndGameUseCase,
     private val calculateRoundScoresUseCase: CalculateRoundScoresUseCase
 ) {
@@ -22,12 +21,10 @@ class EndRoundUseCase(
         if (currentRound.status != RoundStatus.REVEALED) { return EndRoundResult.RoundNotActive }
 
         val updatedRound = currentRound.copy(status = RoundStatus.FINISHED)
+        var updatedGame = game.updateRoundInGame(updatedRound)
 
-        if (currentRound.index < game.settings.nbRound) {
-            val nextRoundResult = createRoundUseCase(gameId)
-            if (nextRoundResult != CreateRoundResult.Success) {
-                return EndRoundResult.NextRoundFailed(nextRoundResult)
-            }
+        if (currentRound.index < game.settings.nbRound - 1) {
+            updatedGame = updatedGame.copy(currentRoundIndex = updatedGame.currentRoundIndex + 1)
         } else {
             val endGameResult = endGameUseCase(gameId)
             if (endGameResult != EndGameResult.Success) {
@@ -35,12 +32,8 @@ class EndRoundUseCase(
             }
         }
 
-        val updatedGame = game.updateRoundInGame(updatedRound).copy(
-
-        )
         gameRepository.saveGame(updatedGame).getOrThrow()
         return EndRoundResult.Success
-
     }
 
 
@@ -48,7 +41,6 @@ class EndRoundUseCase(
 
 sealed class EndRoundResult{
     data class NextRoundStarted(val round: Round) : EndRoundResult()
-    data class NextRoundFailed(val result: CreateRoundResult) : EndRoundResult()
     data class EndGameFailed(val result: EndGameResult) : EndRoundResult()
     object Success : EndRoundResult()
     object GameNotFound : EndRoundResult()

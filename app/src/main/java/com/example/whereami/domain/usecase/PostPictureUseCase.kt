@@ -6,14 +6,6 @@ import com.example.whereami.domain.repository.GameRepository
 
 import kotlin.time.Instant
 
-// Basic specs :
-// user provides imageUrl, location and optionally a description
-// game must exist and be active
-// round must exist and be active
-// user must belong to group
-// user mustn't have already posted a picture for this round
-
-
 class PostPictureUseCase(private val gameRepository: GameRepository) {
     suspend operator fun invoke(
         gameId: String,
@@ -34,7 +26,7 @@ class PostPictureUseCase(private val gameRepository: GameRepository) {
             return PostPictureResult.RoundNotAcceptingPosts
         }
 
-        if (!game.listPlayers.contains(userId)) {
+        if (!game.playerIds.contains(userId)) {
             return PostPictureResult.UserNotMember
         }
 

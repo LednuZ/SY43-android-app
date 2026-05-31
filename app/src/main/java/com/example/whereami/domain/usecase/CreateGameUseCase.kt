@@ -17,18 +17,39 @@ class CreateGameUseCase(
             return CreateGameResult.ActiveGameExists
         }
 
+        val gameId = java.util.UUID.randomUUID().toString()
+        val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+
+        val rounds = (0 until settings.nbRound).map { index ->
+            val durationMillis = index * settings.roundDurationMinutes * 60 * 1000
+            val roundDurationMillis = settings.roundDurationMinutes * 60 * 1000
+            val roundStartTime = Instant.fromEpochMilliseconds(now.toEpochMilliseconds() + durationMillis)
+            val roundEndTime = Instant.fromEpochMilliseconds(roundStartTime.toEpochMilliseconds() + roundDurationMillis)
+            
+            Round(
+                id = java.util.UUID.randomUUID().toString(),
+                gameId = gameId,
+                index = index,
+                status = RoundStatus.CREATED,
+                startTime = roundStartTime,
+                endTime = roundEndTime
+            )
+        }
+
         val game = Game(
-            id = "",
+            id = gameId,
             groupId = groupId,
             settings = settings,
             currentRoundIndex = 0,
             status = GameStatus.CREATED,
+            rounds = rounds,
+            playerIds = group.memberIds,
             scoreSheets = group.memberIds.map { memberId -> 
                 Score(
-                    gameId = "", 
+                    gameId = gameId, 
                     playerId = memberId, 
                     score = 0, 
-                    lastUpdated = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+                    lastUpdated = now
                 ) 
             }
         )
