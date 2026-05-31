@@ -40,6 +40,18 @@ class SupabaseUserRepository(private val client: SupabaseClient) : UserRepositor
         }
     }
 
+    override suspend fun getUsers(userIds: List<String>): Result<List<User>> {
+        return runCatching {
+            if (userIds.isEmpty()) return@runCatching emptyList()
+            
+            client.from("users").select {
+                filter {
+                    isIn("id", userIds)
+                }
+            }.decodeList<UserDto>().map { it.toDomain() }
+        }
+    }
+
     private fun UserDto.toDomain(): User {
         return User(
             id = id,

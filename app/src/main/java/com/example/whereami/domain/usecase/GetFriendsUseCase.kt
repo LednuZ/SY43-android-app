@@ -20,9 +20,9 @@ class GetFriendsUseCase(
             val pendingIds = friendRepository.getPendingFriendRequests(userId).getOrThrow()
             val sentIds = friendRepository.getSentFriendRequests(userId).getOrThrow()
 
-            val friends = friendIds.mapNotNull { userRepository.getUser(it).getOrNull() }
-            val pending = pendingIds.mapNotNull { userRepository.getUser(it).getOrNull() }
-            val sent = sentIds.mapNotNull { userRepository.getUser(it).getOrNull() }
+            val friends = userRepository.getUsers(friendIds.toList()).getOrNull() ?: emptyList()
+            val pending = userRepository.getUsers(pendingIds.toList()).getOrNull() ?: emptyList()
+            val sent = userRepository.getUsers(sentIds.toList()).getOrNull() ?: emptyList()
 
             FriendsData(friends, pending, sent)
         }
