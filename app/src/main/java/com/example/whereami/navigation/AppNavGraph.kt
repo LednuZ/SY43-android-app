@@ -11,6 +11,10 @@ import com.example.whereami.ui.screens.HomeDestination
 import com.example.whereami.ui.screens.HomeScreen
 import com.example.whereami.ui.screens.FriendsDestination
 import com.example.whereami.ui.screens.FriendsScreen
+import com.example.whereami.ui.screens.GroupsDestination
+import com.example.whereami.ui.screens.GroupsScreen
+import com.example.whereami.ui.screens.CreateGroupDestination
+import com.example.whereami.ui.screens.CreateGroupScreen
 import com.example.whereami.data.remote.SupabaseProvider
 import io.github.jan.supabase.auth.auth
 
@@ -29,7 +33,8 @@ fun AppNavHost(
         {
             HomeScreen(
                 onLoginClick = { navController.navigate(LoginDestination.route) },
-                onFriendsClick = { navController.navigate(FriendsDestination.route) }
+                onFriendsClick = { navController.navigate(FriendsDestination.route) },
+                onGroupsClick = { navController.navigate(GroupsDestination.route) }
             )
         }
 
@@ -48,6 +53,25 @@ fun AppNavHost(
             val session = SupabaseProvider.client.auth.currentSessionOrNull()
             if (session?.user != null) {
                 FriendsScreen(
+                    currentUser = session.user!!,
+                    onNavigateUp = { navController.popBackStack() }
+                )
+            }
+        }
+        composable (route = GroupsDestination.route) {
+            val session = SupabaseProvider.client.auth.currentSessionOrNull()
+            if (session?.user != null) {
+                GroupsScreen(
+                    currentUser = session.user!!,
+                    onNavigateUp = { navController.popBackStack() },
+                    onCreateGroupClick = { navController.navigate(CreateGroupDestination.route) }
+                )
+            }
+        }
+        composable (route = CreateGroupDestination.route) {
+            val session = SupabaseProvider.client.auth.currentSessionOrNull()
+            if (session?.user != null) {
+                CreateGroupScreen(
                     currentUser = session.user!!,
                     onNavigateUp = { navController.popBackStack() }
                 )

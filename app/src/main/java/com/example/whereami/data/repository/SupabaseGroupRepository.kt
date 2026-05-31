@@ -30,15 +30,13 @@ class SupabaseGroupRepository(private val client: SupabaseClient) : GroupReposit
 
     override suspend fun createGroup(group: Group): Result<String> {
         return runCatching {
+            val groupId = java.util.UUID.randomUUID().toString()
             val dto = GroupDto(
+                id = groupId,
                 name = group.name
             )
-            val result = client.from("groups").insert(dto) {
-                select()
-            }.decodeSingle<GroupDto>()
-            val groupId = result.id ?: throw Exception("Failed to get created group id")
+            client.from("groups").insert(dto)
 
-            // Insert members
             val members = group.memberIds.map { userId ->
                 GroupMemberDto(group_id = groupId, user_id = userId, role = "MEMBER")
             }
@@ -70,7 +68,6 @@ class SupabaseGroupRepository(private val client: SupabaseClient) : GroupReposit
 
     override suspend fun getGroupsForUser(userId: String): Result<List<Group>> {
         return runCatching {
-            // First get all group_ids for the user
             val memberRows = client.from("group_members").select {
                 filter {
                     eq("user_id", userId)
@@ -81,14 +78,12 @@ class SupabaseGroupRepository(private val client: SupabaseClient) : GroupReposit
             
             val groupIds = memberRows.map { it.group_id }
             
-            // Fetch the groups
             val groups = client.from("groups").select {
                 filter {
                     isIn("id", groupIds)
                 }
             }.decodeList<GroupDto>()
 
-            // Fetch all members for these groups
             val allMembers = client.from("group_members").select {
                 filter {
                     isIn("group_id", groupIds)

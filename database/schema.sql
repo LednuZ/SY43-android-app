@@ -186,3 +186,35 @@ CREATE POLICY "Users can update requests sent to them"
 ON public.friendships FOR UPDATE 
 USING (auth.uid() = player_2_id)
 WITH CHECK (auth.uid() = player_2_id);
+
+-- RLS for Groups
+ALTER TABLE public.groups ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can create groups" 
+ON public.groups FOR INSERT 
+WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Users can view groups they belong to" 
+ON public.groups FOR SELECT 
+USING (
+    EXISTS (
+        SELECT 1 FROM public.group_members 
+        WHERE group_members.group_id = groups.id 
+        AND group_members.user_id = auth.uid()
+    )
+);
+
+-- RLS for Group Members
+ALTER TABLE public.group_members ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can add members to groups" 
+ON public.group_members FOR INSERT 
+WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Users can view group memberships" 
+ON public.group_members FOR SELECT 
+USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Users can leave or remove members" 
+ON public.group_members FOR DELETE 
+USING (auth.role() = 'authenticated');

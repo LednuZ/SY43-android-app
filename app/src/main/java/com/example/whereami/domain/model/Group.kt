@@ -3,8 +3,8 @@ package com.example.whereami.domain.model
 import kotlin.time.Instant
 
 data class Group(
-    val id: String,
+    val id: String = "",
     val name: String,
-    val createdAt: Instant,
+    val createdAt: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
     val memberIds: MutableList<String> = mutableListOf()
 )

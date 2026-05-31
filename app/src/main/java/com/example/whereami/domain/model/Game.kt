@@ -4,7 +4,7 @@ import kotlin.time.Instant
 
 enum class GameStatus { CREATED, PLAYING, FINISHED }
 data class Game(
-    val id: String,
+    val id: String = "",
     val groupId: String,
     val settings: GameSettings,
     val currentRoundIndex: Int = 0,

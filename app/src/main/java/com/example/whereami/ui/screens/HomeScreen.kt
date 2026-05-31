@@ -22,7 +22,8 @@ object HomeDestination : NavigationDestination {
 fun HomeScreen(
     modifier: Modifier = Modifier,
     onLoginClick: () -> Unit,
-    onFriendsClick: () -> Unit
+    onFriendsClick: () -> Unit,
+    onGroupsClick : () -> Unit
 ) {
     val sessionStatus by SupabaseProvider.client.auth.sessionStatus.collectAsState(initial = SessionStatus.Initializing)
     
@@ -30,7 +31,7 @@ fun HomeScreen(
         when (sessionStatus) {
             is SessionStatus.Authenticated -> {
                 val user = (sessionStatus as SessionStatus.Authenticated).session.user
-                DashboardScreen(user = user, onFriendsClick = onFriendsClick)
+                DashboardScreen(user = user, onFriendsClick = onFriendsClick, onGroupsClick)
             }
             is SessionStatus.Initializing -> {
                 CircularProgressIndicator()
@@ -61,7 +62,8 @@ fun WelcomeScreen(onLoginClick: () -> Unit) {
 @Composable
 fun DashboardScreen(
     user: UserInfo?,
-    onFriendsClick: () -> Unit
+    onFriendsClick: () -> Unit,
+    onGroupsClick: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     var isSigningOut by remember { mutableStateOf(false) }
@@ -80,7 +82,7 @@ fun DashboardScreen(
         Spacer(modifier = Modifier.height(64.dp))
         
         Button(
-            onClick = { /* TODO: Navigate to Create Group Screen */ },
+            onClick = onGroupsClick,
             modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = MaterialTheme.shapes.medium
         ) {
