@@ -1,7 +1,6 @@
 package com.example.whereami.domain.model
 
-// possible refactor for round status : deleted CREATED status
-enum class RoundStatus { CREATED, PLAYING, REVEALED, FINISHED }
+enum class RoundStatus { CREATED, FINISHED }
 data class Round(
     val id: String,
     val gameId: String,

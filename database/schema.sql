@@ -274,3 +274,82 @@ USING (auth.role() = 'authenticated');
 CREATE POLICY "Users can update their scores" 
 ON public.game_scores FOR UPDATE 
 USING (auth.role() = 'authenticated');
+
+-- 1. Create the storage bucket for pictures (if it doesn't already exist)
+insert into storage.buckets (id, name, public)
+values ('pictures', 'pictures', true)
+on conflict (id) do nothing;
+
+-- 2. Allow ANY authenticated user to upload images to the 'pictures' bucket
+create policy "Allow authenticated uploads"
+on storage.objects for insert
+to authenticated
+with check ( bucket_id = 'pictures' );
+
+-- 3. Allow ANYONE to view/read the pictures
+create policy "Allow public viewing"
+on storage.objects for select
+to public
+using ( bucket_id = 'pictures' );
+
+-- 4. Make sure your database 'pictures' table also allows inserts
+-- Enable RLS on the pictures table (if not already enabled)
+alter table public.pictures enable row level security;
+
+-- Enable RLS
+alter table public.pictures enable row level security;
+
+-- Allow players to INSERT pictures ONLY if they are in the game
+create policy "Allow players to insert pictures"
+on public.pictures for insert
+to authenticated
+with check (
+  exists (
+    select 1 from public.rounds r
+    join public.game_scores gs on gs.game_id = r.game_id
+    where r.id = round_id
+    and gs.player_id = auth.uid()
+  )
+);
+
+-- Allow players to SELECT/VIEW pictures ONLY if they are in the game
+create policy "Allow players to view pictures"
+on public.pictures for select
+to authenticated
+using (
+  exists (
+    select 1 from public.rounds r
+    join public.game_scores gs on gs.game_id = r.game_id
+    where r.id = round_id
+    and gs.player_id = auth.uid()
+  )
+);
+
+-- Enable RLS
+alter table public.guesses enable row level security;
+
+-- Allow players to INSERT guesses ONLY if they are in the game
+create policy "Allow players to insert guesses"
+on public.guesses for insert
+to authenticated
+with check (
+  exists (
+    select 1 from public.rounds r
+    join public.game_scores gs on gs.game_id = r.game_id
+    where r.id = round_id
+    and gs.player_id = auth.uid()
+  )
+);
+
+-- Allow players to SELECT/VIEW guesses ONLY if they are in the game
+create policy "Allow players to view guesses"
+on public.guesses for select
+to authenticated
+using (
+  exists (
+    select 1 from public.rounds r
+    join public.game_scores gs on gs.game_id = r.game_id
+    where r.id = round_id
+    and gs.player_id = auth.uid()
+  )
+);

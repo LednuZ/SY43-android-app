@@ -6,7 +6,9 @@ import com.example.whereami.domain.model.util.LatLng
 import com.example.whereami.domain.repository.GameRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.storage.storage
 import kotlin.time.Instant
+import java.util.UUID
 
 class SupabaseGameRepository(private val client: SupabaseClient) : GameRepository {
 
@@ -33,6 +35,11 @@ class SupabaseGameRepository(private val client: SupabaseClient) : GameRepositor
             if (scoreDtos.isNotEmpty()) {
                 client.from("game_scores").upsert(scoreDtos)
             }
+
+            val roundDtos = game.rounds.map { it.toDto() }
+            if (roundDtos.isNotEmpty()) {
+                client.from("rounds").upsert(roundDtos)
+            }
         }
     }
 
@@ -48,6 +55,32 @@ class SupabaseGameRepository(private val client: SupabaseClient) : GameRepositor
             val rounds = getRoundsForGame(gameDto.id!!)
             val scores = getScoresForGame(gameDto.id)
             gameDto.toDomain(rounds, scores)
+        }
+    }
+
+    override suspend fun getActiveGamesForUser(userId: String): Result<List<Game>> {
+        return runCatching {
+            val scoresDtos = client.from("game_scores").select {
+                filter {
+                    eq("player_id", userId)
+                }
+            }.decodeList<GameScoreDto>()
+            
+            val gameIds = scoresDtos.map { it.game_id }.distinct()
+            if (gameIds.isEmpty()) return@runCatching emptyList()
+
+            val gamesDtos = client.from("games").select {
+                filter {
+                    isIn("id", gameIds)
+                    neq("status", GameStatus.FINISHED.name)
+                }
+            }.decodeList<GameDto>()
+
+            gamesDtos.map { dto ->
+                val rounds = getRoundsForGame(dto.id!!)
+                val scores = getScoresForGame(dto.id)
+                dto.toDomain(rounds, scores)
+            }
         }
     }
 
@@ -67,6 +100,51 @@ class SupabaseGameRepository(private val client: SupabaseClient) : GameRepositor
             }
             
             game.id
+        }
+    }
+
+    override suspend fun submitGuess(guess: Guess): Result<Unit> {
+        return runCatching {
+            val dto = GuessDto(
+                id = if (guess.id.isEmpty()) UUID.randomUUID().toString() else guess.id,
+                round_id = guess.roundId,
+                player_id = guess.playerId,
+                picture_id = guess.pictureId,
+                latitude = guess.guessedLocation.latitude,
+                longitude = guess.guessedLocation.longitude,
+                guessed_at = guess.guessedAt.toString(),
+                distance_meters = guess.distanceMeters,
+                guess_score = guess.guessScore
+            )
+            client.from("guesses").insert(dto)
+        }
+    }
+
+    override suspend fun getGuessesForRound(roundId: String): Result<List<Guess>> {
+        return runCatching {
+            client.from("guesses").select {
+                filter { eq("round_id", roundId) }
+            }.decodeList<GuessDto>().map { it.toDomain() }
+        }
+    }
+
+    override suspend fun uploadPicture(roundId: String, publisherId: String, location: LatLng, imageBytes: ByteArray): Result<Unit> {
+        return runCatching {
+            val fileName = "${UUID.randomUUID()}.jpg"
+            val bucket = client.storage.from("pictures")
+            bucket.upload(fileName, imageBytes)
+            val publicUrl = bucket.publicUrl(fileName)
+            
+            val pictureDto = PictureDto(
+                id = UUID.randomUUID().toString(),
+                round_id = roundId,
+                publisher_id = publisherId,
+                image_url = publicUrl,
+                latitude = location.latitude,
+                longitude = location.longitude,
+                created_at = io.ktor.util.date.getTimeMillis().let { Instant.fromEpochMilliseconds(it).toString() }
+            )
+            client.from("pictures").insert(pictureDto)
         }
     }
 
@@ -189,6 +267,19 @@ class SupabaseGameRepository(private val client: SupabaseClient) : GameRepositor
             player_id = playerId,
             score = score,
             date_last_update = lastUpdated.toString()
+        )
+    }
+
+    private fun GuessDto.toDomain(): Guess {
+        return Guess(
+            id = id ?: "",
+            roundId = round_id,
+            playerId = player_id,
+            pictureId = picture_id,
+            guessedLocation = LatLng(latitude, longitude),
+            guessedAt = Instant.parse(guessed_at),
+            distanceMeters = distance_meters,
+            guessScore = guess_score
         )
     }
 }

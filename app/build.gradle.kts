@@ -91,4 +91,7 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.osmdroid.android)
+    implementation(libs.coil.compose)
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 }

@@ -21,6 +21,10 @@ import com.example.whereami.ui.screens.LobbyDestination
 import com.example.whereami.ui.screens.LobbyScreen
 import com.example.whereami.ui.screens.CreateGameDestination
 import com.example.whereami.ui.screens.CreateGameScreen
+import com.example.whereami.ui.screens.GameDestination
+import com.example.whereami.ui.screens.GameScreen
+import com.example.whereami.ui.screens.RoundDestination
+import com.example.whereami.ui.screens.RoundScreen
 import com.example.whereami.data.remote.SupabaseProvider
 import io.github.jan.supabase.auth.auth
 
@@ -33,14 +37,13 @@ fun AppNavHost(
     NavHost(
         navController=navController,
         startDestination = HomeDestination.route,
-        modifier = Modifier
+        modifier = modifier
     ){
         composable (route = HomeDestination.route)
         {
             HomeScreen(
                 onLoginClick = { navController.navigate(LoginDestination.route) },
-                onFriendsClick = { navController.navigate(FriendsDestination.route) },
-                onGroupsClick = { navController.navigate(GroupsDestination.route) }
+                onNavigateToRound = { gameId, roundId -> navController.navigate(RoundDestination.createRoute(gameId, roundId)) },
             )
         }
 
@@ -93,7 +96,8 @@ fun AppNavHost(
                 LobbyScreen(
                     groupId = groupId,
                     onNavigateUp = { navController.popBackStack() },
-                    onCreateGameClick = { navController.navigate(CreateGameDestination.createRoute(groupId)) }
+                    onCreateGameClick = { navController.navigate(CreateGameDestination.createRoute(groupId)) },
+                    onNavigateToGame = { gameId -> navController.navigate(GameDestination.createRoute(gameId)) }
                 )
             }
         }
@@ -105,6 +109,36 @@ fun AppNavHost(
             if (groupId != null) {
                 CreateGameScreen(
                     groupId = groupId,
+                    onNavigateUp = { navController.popBackStack() }
+                )
+            }
+        }
+        composable(
+            route = GameDestination.route,
+            arguments = listOf(navArgument("gameId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val gameId = backStackEntry.arguments?.getString("gameId")
+            if (gameId != null) {
+                GameScreen(
+                    gameId = gameId,
+                    onNavigateUp = { navController.popBackStack() },
+                    onNavigateToRound = { gId, rId -> navController.navigate(RoundDestination.createRoute(gId, rId)) }
+                )
+            }
+        }
+        composable(
+            route = RoundDestination.route,
+            arguments = listOf(
+                navArgument("gameId") { type = NavType.StringType },
+                navArgument("roundId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val gameId = backStackEntry.arguments?.getString("gameId")
+            val roundId = backStackEntry.arguments?.getString("roundId")
+            if (gameId != null && roundId != null) {
+                RoundScreen(
+                    gameId = gameId,
+                    roundId = roundId,
                     onNavigateUp = { navController.popBackStack() }
                 )
             }

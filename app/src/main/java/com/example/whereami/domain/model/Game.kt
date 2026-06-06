@@ -2,7 +2,7 @@ package com.example.whereami.domain.model
 
 import kotlin.time.Instant
 
-enum class GameStatus { CREATED, PLAYING, FINISHED }
+enum class GameStatus { CREATED, FINISHED }
 data class Game(
     val id: String = "",
     val groupId: String,

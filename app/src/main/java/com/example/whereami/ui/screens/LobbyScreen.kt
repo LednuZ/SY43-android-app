@@ -29,6 +29,7 @@ fun LobbyScreen(
     groupId: String,
     onNavigateUp: () -> Unit,
     onCreateGameClick: () -> Unit,
+    onNavigateToGame: (String) -> Unit,
     viewModel: LobbyViewModel = viewModel(factory = LobbyViewModel.provideFactory())
 ) {
     LaunchedEffect(groupId) {
@@ -79,8 +80,7 @@ fun LobbyScreen(
 
                             Button(
                                 onClick = {
-                                    // TODO: Navigate to GameScreen
-                                    // onNavigateToGame(uiState.activeGame!!.id)
+                                    onNavigateToGame(uiState.activeGame!!.id)
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()

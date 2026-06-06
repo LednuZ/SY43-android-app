@@ -20,9 +20,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SecureTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,6 +44,7 @@ import com.example.whereami.navigation.NavigationDestination
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import kotlinx.coroutines.launch
+import com.example.whereami.util.toAppError
 
 object LoginDestination : NavigationDestination {
     override val route= "login"
@@ -61,10 +66,21 @@ fun LoginScreen(
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var successMessage by remember { mutableStateOf<String?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            errorMessage = null
+        }
+    }
 
     if (context is ComponentActivity) {
-        Column(
-            modifier = modifier.fillMaxSize().padding(16.dp),
+        Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) }
+        ) { paddingValues ->
+            Column(
+                modifier = modifier.fillMaxSize().padding(paddingValues).padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
@@ -128,7 +144,7 @@ fun LoginScreen(
                                     kotlinx.coroutines.delay(500)
                                     onLoginSuccess()
                                 } catch (e: Exception) {
-                                    errorMessage = e.message ?: "Login failed"
+                                    errorMessage = e.toAppError().toUserMessage()
                                 } finally {
                                     isLoading = false
                                 }
@@ -156,7 +172,7 @@ fun LoginScreen(
                                     }
                                     successMessage = "Account created! Logging you in..."
                                 } catch (e: Exception) {
-                                    errorMessage = e.message ?: "Sign up failed"
+                                    errorMessage = e.toAppError().toUserMessage()
                                 } finally {
                                     isLoading = false
                                 }
@@ -170,9 +186,6 @@ fun LoginScreen(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            if (errorMessage != null) {
-                Text(text = errorMessage!!, color = MaterialTheme.colorScheme.error)
-            }
             if (successMessage != null) {
                 Text(text = successMessage!!, color = MaterialTheme.colorScheme.primary)
             }
@@ -183,6 +196,7 @@ fun LoginScreen(
             ) {
                 Text("Go Back")
             }
+        }
         }
     }
 }
