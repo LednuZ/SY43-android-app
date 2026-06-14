@@ -387,10 +387,12 @@ fun ScoreMultiplierCard(
 fun MultiplierButton(
     value: String,
     label: String,
-    selected: Boolean
+    selected: Boolean,
+    onClick: () -> Unit
 ) {
     Button(
-        onClick = {},modifier = Modifier
+        onClick = onClick,
+        modifier = Modifier
             .fillMaxWidth()
             .height(60.dp),
         shape = RoundedCornerShape(12.dp),
@@ -405,6 +407,7 @@ fun MultiplierButton(
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
+
             Text(
                 text = label,
                 fontSize = 9.sp
