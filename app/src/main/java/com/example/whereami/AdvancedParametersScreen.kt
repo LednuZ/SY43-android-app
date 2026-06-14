@@ -41,6 +41,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.tooling.preview.Preview
 
 
@@ -59,6 +61,7 @@ fun AdvancedParametersScreen() {
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF7F8FC))
+            .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
 
@@ -118,7 +121,7 @@ fun AdvancedParametersScreen() {
 
         ProTipCard()
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(16.dp))
 
         BottomButtons()
     }
@@ -525,7 +528,7 @@ fun BottomButtons() {
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Button(
-            onClick = {},
+            onClick = {println("Back clicked")},// pr voir ça marche bien
             modifier = Modifier
                 .weight(1f)
                 .height(56.dp),
@@ -539,7 +542,7 @@ fun BottomButtons() {
         }
 
         Button(
-            onClick = {},
+            onClick = {println("Start Hunt clicked")},
             modifier = Modifier
                 .weight(2f)
                 .height(56.dp),
