@@ -228,6 +228,7 @@ fun MyApp() {
                     text = "Share this link to let anyone join your lobby instantly.",
                     color = Color.Gray,
                     fontSize = 12.sp
+                    //A FAIRE : share marche pas
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
