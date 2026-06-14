@@ -25,8 +25,15 @@ import com.example.whereami.ui.screens.GameDestination
 import com.example.whereami.ui.screens.GameScreen
 import com.example.whereami.ui.screens.RoundDestination
 import com.example.whereami.ui.screens.RoundScreen
+import com.example.whereami.ui.screens.AccountDestination
+import com.example.whereami.ui.screens.AccountScreen
+import com.example.whereami.ui.screens.ResetPasswordDestination
+import com.example.whereami.ui.screens.ResetPasswordScreen
+import com.example.whereami.ui.screens.PastGamesDestination
+import com.example.whereami.ui.screens.PastGamesScreen
 import com.example.whereami.data.remote.SupabaseProvider
 import io.github.jan.supabase.auth.auth
+import androidx.navigation.navDeepLink
 
 @Composable
 fun AppNavHost(
@@ -44,6 +51,7 @@ fun AppNavHost(
             HomeScreen(
                 onLoginClick = { navController.navigate(LoginDestination.route) },
                 onNavigateToRound = { gameId, roundId -> navController.navigate(RoundDestination.createRoute(gameId, roundId)) },
+                onNavigateToAccount = { navController.navigate(AccountDestination.route) }
             )
         }
 
@@ -97,7 +105,8 @@ fun AppNavHost(
                     groupId = groupId,
                     onNavigateUp = { navController.popBackStack() },
                     onCreateGameClick = { navController.navigate(CreateGameDestination.createRoute(groupId)) },
-                    onNavigateToGame = { gameId -> navController.navigate(GameDestination.createRoute(gameId)) }
+                    onNavigateToGame = { gameId -> navController.navigate(GameDestination.createRoute(gameId)) },
+                    onNavigateToPastGames = { gId -> navController.navigate(PastGamesDestination.createRoute(gId)) }
                 )
             }
         }
@@ -139,7 +148,53 @@ fun AppNavHost(
                 RoundScreen(
                     gameId = gameId,
                     roundId = roundId,
-                    onNavigateUp = { navController.popBackStack() }
+                    onNavigateUp = { navController.popBackStack() },
+                    onNavigateToRound = { gId, rId ->
+                        navController.navigate(RoundDestination.createRoute(gId, rId)) {
+                            popUpTo(GameDestination.createRoute(gameId)) {
+                                inclusive = false
+                            }
+                        }
+                    }
+                )
+            }
+        }
+        composable(route = AccountDestination.route) {
+            val session = SupabaseProvider.client.auth.currentSessionOrNull()
+            if (session?.user != null) {
+                AccountScreen(
+                    currentUser = session.user!!,
+                    onNavigateUp = { navController.popBackStack() },
+                    onNavigateToLogin = { 
+                        navController.navigate(LoginDestination.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                )
+            }
+        }
+        composable(
+            route = ResetPasswordDestination.route,
+            deepLinks = listOf(navDeepLink { uriPattern = "whereami://reset-password" })
+        ) {
+            ResetPasswordScreen(
+                onNavigateToHome = {
+                    navController.navigate(HomeDestination.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable(
+            route = PastGamesDestination.route,
+            arguments = listOf(navArgument("groupId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val groupId = backStackEntry.arguments?.getString("groupId")
+            if (groupId != null) {
+                PastGamesScreen(
+                    groupId = groupId,
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToGame = { gameId -> navController.navigate(GameDestination.createRoute(gameId)) }
                 )
             }
         }

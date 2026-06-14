@@ -1,4 +1,4 @@
-package com.example.whereami.domain.usecase
+package com.example.whereami.domain.usecase.game
 
 import com.example.whereami.domain.model.*
 import com.example.whereami.domain.repository.GameRepository
@@ -20,21 +20,18 @@ class CreateGameUseCase(
         val gameId = java.util.UUID.randomUUID().toString()
         val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
 
-        val rounds = (0 until settings.nbRound).map { index ->
-            val durationMillis = index * settings.roundDurationMinutes * 60 * 1000
-            val roundDurationMillis = settings.roundDurationMinutes * 60 * 1000
-            val roundStartTime = Instant.fromEpochMilliseconds(now.toEpochMilliseconds() + durationMillis)
-            val roundEndTime = Instant.fromEpochMilliseconds(roundStartTime.toEpochMilliseconds() + roundDurationMillis)
-            
-            Round(
-                id = java.util.UUID.randomUUID().toString(),
-                gameId = gameId,
-                index = index,
-                status = RoundStatus.CREATED,
-                startTime = roundStartTime,
-                endTime = roundEndTime
-            )
-        }
+        val roundDurationMillis = settings.roundDurationMinutes * 60 * 1000
+        val roundEndTime = Instant.fromEpochMilliseconds(now.toEpochMilliseconds() + roundDurationMillis)
+
+        val firstRound = Round(
+            id = java.util.UUID.randomUUID().toString(),
+            gameId = gameId,
+            index = 0,
+            status = RoundStatus.CREATED,
+            startTime = now,
+            endTime = roundEndTime
+        )
+        val rounds = listOf(firstRound)
 
         val game = Game(
             id = gameId,

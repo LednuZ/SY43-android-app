@@ -1,4 +1,4 @@
-package com.example.whereami.domain.usecase
+package com.example.whereami.domain.usecase.group
 
 // Basic specs :
 // user provides link

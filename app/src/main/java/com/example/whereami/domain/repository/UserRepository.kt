@@ -7,4 +7,5 @@ interface UserRepository {
     suspend fun saveUser(user: User): Result<Unit>
     suspend fun searchUsers(query: String): Result<List<User>>
     suspend fun getUsers(userIds: List<String>): Result<List<User>>
+    suspend fun deleteUser(userId: String): Result<Unit>
 }

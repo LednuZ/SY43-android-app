@@ -5,6 +5,7 @@ import com.example.whereami.domain.model.User
 import com.example.whereami.domain.repository.UserRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
+import com.example.whereami.data.dto.GameDto
 import kotlin.time.Instant
 
 class SupabaseUserRepository(private val client: SupabaseClient) : UserRepository {
@@ -22,8 +23,16 @@ class SupabaseUserRepository(private val client: SupabaseClient) : UserRepositor
 
     override suspend fun saveUser(user: User): Result<Unit> {
         return runCatching {
-            val dto = user.toDto()
-            client.from("users").upsert(dto)
+            client.from("users").update(
+                {
+                    set("username", user.username)
+                    set("first_name", user.firstName)
+                    set("last_name", user.lastName)
+                    set("phone_number", user.phoneNumber)
+                }
+            ) {
+                filter { eq("id", user.id) }
+            }
         }
     }
 
@@ -48,6 +57,43 @@ class SupabaseUserRepository(private val client: SupabaseClient) : UserRepositor
                     isIn("id", userIds)
                 }
             }.decodeList<UserDto>().map { it.toDomain() }
+        }
+    }
+
+    override suspend fun deleteUser(userId: String): Result<Unit> {
+        return runCatching {
+            // 1. Anonymize user
+            client.from("users").update(
+                {
+                    set("username", "Deleted User ${userId.take(4)}")
+                    set("email", "deleted_$userId@whereami.com")
+                    set("first_name", null as String?)
+                    set("last_name", null as String?)
+                    set("phone_number", null as String?)
+                    set("profile_picture", null as String?)
+                }
+            ) {
+                filter { eq("id", userId) }
+            }
+
+            // 2. Remove from groups
+            client.from("group_members").delete {
+                filter { eq("user_id", userId) }
+            }
+
+            // 3. Remove from active games
+            val activeGameIds = client.from("games").select {
+                filter { neq("status", "FINISHED") }
+            }.decodeList<GameDto>().mapNotNull { it.id }
+
+            if (activeGameIds.isNotEmpty()) {
+                client.from("game_scores").delete {
+                    filter {
+                        eq("player_id", userId)
+                        isIn("game_id", activeGameIds)
+                    }
+                }
+            }
         }
     }
 

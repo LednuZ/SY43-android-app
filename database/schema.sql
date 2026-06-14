@@ -198,6 +198,10 @@ ON public.friendships FOR UPDATE
 USING (auth.uid() = player_2_id)
 WITH CHECK (auth.uid() = player_2_id);
 
+CREATE POLICY "Users can delete their friendships"
+ON public.friendships FOR DELETE
+USING (auth.uid() = player_1_id OR auth.uid() = player_2_id);
+
 -- RLS for Groups
 ALTER TABLE public.groups ENABLE ROW LEVEL SECURITY;
 
@@ -273,6 +277,21 @@ USING (auth.role() = 'authenticated');
 
 CREATE POLICY "Users can update their scores" 
 ON public.game_scores FOR UPDATE 
+USING (auth.role() = 'authenticated');
+
+-- RLS for Round Scores
+ALTER TABLE public.round_scores ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can insert round scores" 
+ON public.round_scores FOR INSERT 
+WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Users can view round scores" 
+ON public.round_scores FOR SELECT 
+USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Users can update round scores" 
+ON public.round_scores FOR UPDATE 
 USING (auth.role() = 'authenticated');
 
 -- 1. Create the storage bucket for pictures (if it doesn't already exist)
@@ -353,3 +372,13 @@ using (
     and gs.player_id = auth.uid()
   )
 );
+
+-- Allow users to update their own profile only
+CREATE POLICY "Users can update own profile" 
+ON public.users FOR UPDATE 
+USING (auth.uid() = id);
+
+
+CREATE POLICY "Users can delete their friendships"
+ON public.friendships FOR DELETE
+USING (auth.uid() = player_1_id OR auth.uid() = player_2_id);

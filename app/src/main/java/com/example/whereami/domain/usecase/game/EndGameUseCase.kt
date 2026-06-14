@@ -1,4 +1,4 @@
-package com.example.whereami.domain.usecase
+package com.example.whereami.domain.usecase.game
 
 class EndGameUseCase {
     suspend operator fun invoke(gameId: String): EndGameResult {

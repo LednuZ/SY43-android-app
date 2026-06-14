@@ -1,4 +1,4 @@
-package com.example.whereami.domain.usecase
+package com.example.whereami.domain.usecase.round
 
 import com.example.whereami.domain.model.*
 import com.example.whereami.domain.repository.GameRepository
@@ -41,7 +41,7 @@ class GetRoundDetailsUseCase(
                 }
                 
                 val totalExpectedGuesses = if (game.playerIds.size > 1) game.playerIds.size - 1 else 1
-                val isRevealed = userPictureGuesses.size >= totalExpectedGuesses
+                val isRevealed = userPicture != null && userPictureGuesses.size >= totalExpectedGuesses
                 
                 PlayerBox(
                     user = user,

@@ -3,11 +3,12 @@ package com.example.whereami.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.whereami.domain.usecase.AdvanceRoundUseCase
-import com.example.whereami.domain.usecase.CatchUpExpiredRoundsUseCase
-import com.example.whereami.domain.usecase.GetGameDetailsUseCase
+import com.example.whereami.domain.usecase.round.AdvanceRoundUseCase
+import com.example.whereami.domain.usecase.round.CatchUpExpiredRoundsUseCase
+import com.example.whereami.domain.usecase.game.GetGameDetailsUseCase
 import com.example.whereami.data.remote.SupabaseProvider
 import com.example.whereami.data.repository.SupabaseGameRepository
+import com.example.whereami.data.repository.SupabaseUserRepository
 import com.example.whereami.domain.model.Game
 import com.example.whereami.domain.model.Round
 import com.example.whereami.domain.repository.GameRepository
@@ -24,6 +25,7 @@ data class GameDetailsUiState(
     val game: Game? = null,
     val currentRounds: List<Round> = emptyList(),
     val pastRounds: List<Round> = emptyList(),
+    val playerUsernames: Map<String, String> = emptyMap(),
     val error: AppError? = null
 )
 
@@ -44,7 +46,8 @@ class GameViewModel(
                     isLoading = false,
                     game = details.game,
                     currentRounds = details.currentRounds,
-                    pastRounds = details.pastRounds
+                    pastRounds = details.pastRounds,
+                    playerUsernames = details.playerUsernames
                 )
             } else {
                 _uiState.value = _uiState.value.copy(
@@ -64,9 +67,10 @@ class GameViewModel(
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 val gameRepo = SupabaseGameRepository(SupabaseProvider.client)
+                val userRepo = SupabaseUserRepository(SupabaseProvider.client)
                 val advanceRoundUseCase = AdvanceRoundUseCase(gameRepo)
                 val catchUpExpiredRoundsUseCase = CatchUpExpiredRoundsUseCase(gameRepo, advanceRoundUseCase)
-                val getGameDetailsUseCase = GetGameDetailsUseCase(gameRepo, catchUpExpiredRoundsUseCase)
+                val getGameDetailsUseCase = GetGameDetailsUseCase(gameRepo, userRepo, catchUpExpiredRoundsUseCase)
                 return GameViewModel(getGameDetailsUseCase) as T
             }
         }

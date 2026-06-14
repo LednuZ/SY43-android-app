@@ -7,7 +7,13 @@ import com.example.whereami.data.remote.SupabaseProvider
 import com.example.whereami.data.repository.SupabaseFriendRepository
 import com.example.whereami.data.repository.SupabaseUserRepository
 import com.example.whereami.domain.model.User
-import com.example.whereami.domain.usecase.*
+import com.example.whereami.domain.usecase.friend.AcceptFriendRequestUseCase
+import com.example.whereami.domain.usecase.friend.AcceptRequestResult
+import com.example.whereami.domain.usecase.friend.GetFriendsUseCase
+import com.example.whereami.domain.usecase.user.SearchUsersUseCase
+import com.example.whereami.domain.usecase.friend.SendFriendRequestUseCase
+import com.example.whereami.domain.usecase.friend.DeleteFriendUseCase
+import com.example.whereami.domain.usecase.friend.SendRequestResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,7 +33,8 @@ class FriendsViewModel(
     private val getFriendsUseCase: GetFriendsUseCase,
     private val searchUsersUseCase: SearchUsersUseCase,
     private val sendFriendRequestUseCase: SendFriendRequestUseCase,
-    private val acceptFriendRequestUseCase: AcceptFriendRequestUseCase
+    private val acceptFriendRequestUseCase: AcceptFriendRequestUseCase,
+    private val deleteFriendUseCase: DeleteFriendUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FriendsUiState())
@@ -120,6 +127,23 @@ class FriendsViewModel(
         }
     }
 
+    fun deleteFriend(friendId: String) {
+        val currentUserId = currentUserId ?: return
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            val result = deleteFriendUseCase(currentUserId, friendId)
+            if (result.isSuccess) {
+                _uiState.value = _uiState.value.copy(isLoading = false, successMessage = "Friend deleted.")
+                fetchFriends()
+            } else {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = result.exceptionOrNull()?.message ?: "Failed to delete friend"
+                )
+            }
+        }
+    }
+
     fun clearError() {
         _uiState.value = _uiState.value.copy(error = null)
     }
@@ -140,7 +164,8 @@ class FriendsViewModel(
                     getFriendsUseCase = GetFriendsUseCase(friendRepo, userRepo),
                     searchUsersUseCase = SearchUsersUseCase(userRepo),
                     sendFriendRequestUseCase = SendFriendRequestUseCase(friendRepo, userRepo),
-                    acceptFriendRequestUseCase = AcceptFriendRequestUseCase(friendRepo)
+                    acceptFriendRequestUseCase = AcceptFriendRequestUseCase(friendRepo),
+                    deleteFriendUseCase = DeleteFriendUseCase(friendRepo)
                 ) as T
             }
         }

@@ -10,8 +10,8 @@ import com.example.whereami.data.repository.SupabaseGameRepository
 import com.example.whereami.domain.model.Group
 import com.example.whereami.domain.model.User
 import com.example.whereami.domain.model.Game
-import com.example.whereami.domain.usecase.GetGroupDetailsUseCase
-import com.example.whereami.domain.usecase.GetFriendsUseCase
+import com.example.whereami.domain.usecase.group.GetGroupDetailsUseCase
+import com.example.whereami.domain.usecase.friend.GetFriendsUseCase
 import com.example.whereami.domain.repository.GroupRepository
 import com.example.whereami.data.repository.SupabaseFriendRepository
 import io.github.jan.supabase.auth.auth

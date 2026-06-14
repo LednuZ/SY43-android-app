@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,6 +39,7 @@ fun FriendsScreen(
     val uiState by viewModel.uiState.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
+    var friendToDelete by remember { mutableStateOf<User?>(null) }
 
     LaunchedEffect(uiState.successMessage) {
         uiState.successMessage?.let {
@@ -117,8 +119,8 @@ fun FriendsScreen(
                     items(uiState.friends) { user ->
                         UserRow(
                             user = user,
-                            actionIcon = null,
-                            onActionClick = {}
+                            actionIcon = Icons.Default.Delete,
+                            onActionClick = { friendToDelete = user }
                         )
                     }
                 }
@@ -159,6 +161,29 @@ fun FriendsScreen(
                 }
 
             }
+        }
+
+        if (friendToDelete != null) {
+            AlertDialog(
+                onDismissRequest = { friendToDelete = null },
+                title = { Text("Delete Friend") },
+                text = { Text("Are you sure you want to remove ${friendToDelete?.username} from your friends?") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            friendToDelete?.let { viewModel.deleteFriend(it.id) }
+                            friendToDelete = null
+                        }
+                    ) {
+                        Text("Delete", color = MaterialTheme.colorScheme.error)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { friendToDelete = null }) {
+                        Text("Cancel")
+                    }
+                }
+            )
         }
     }
 }

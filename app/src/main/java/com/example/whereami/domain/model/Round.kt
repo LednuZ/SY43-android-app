@@ -8,5 +8,6 @@ data class Round(
     val index: Int,
     val status: RoundStatus,
     val startTime: kotlin.time.Instant,
-    val endTime: kotlin.time.Instant
+    val endTime: kotlin.time.Instant,
+    val scoreSheets: List<Score> = emptyList()
 )

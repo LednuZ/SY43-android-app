@@ -1,4 +1,4 @@
-package com.example.whereami.domain.usecase
+package com.example.whereami.domain.usecase.group
 
 import com.example.whereami.domain.model.Group
 import com.example.whereami.domain.model.User

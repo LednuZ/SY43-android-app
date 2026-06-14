@@ -1,7 +1,8 @@
-package com.example.whereami.domain.usecase
+package com.example.whereami.domain.usecase.round
 
 import com.example.whereami.domain.model.Guess
 import com.example.whereami.domain.model.Picture
+import com.example.whereami.domain.model.util.LatLng
 import com.example.whereami.domain.repository.GameRepository
 import kotlin.time.Clock
 
@@ -22,14 +23,14 @@ class SubmitGuessUseCase(
             results
         )
         val distanceInMeters = results[0].toDouble()
-        val guessScore = kotlin.math.max(0, (5000.0 * kotlin.math.exp(-distanceInMeters / 2000.0)).toInt())
+        val guessScore = kotlin.math.max(0, (5000.0 * kotlin.math.exp(-distanceInMeters / 100000.0)).toInt())
         
         val guess = Guess(
             id = java.util.UUID.randomUUID().toString(),
             roundId = roundId,
             playerId = playerId,
             pictureId = picture.id,
-            guessedLocation = com.example.whereami.domain.model.util.LatLng(guessLatitude, guessLongitude),
+            guessedLocation = LatLng(guessLatitude, guessLongitude),
             guessedAt = Clock.System.now(),
             distanceMeters = distanceInMeters,
             guessScore = guessScore

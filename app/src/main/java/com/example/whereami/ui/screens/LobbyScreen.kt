@@ -30,6 +30,7 @@ fun LobbyScreen(
     onNavigateUp: () -> Unit,
     onCreateGameClick: () -> Unit,
     onNavigateToGame: (String) -> Unit,
+    onNavigateToPastGames: (String) -> Unit,
     viewModel: LobbyViewModel = viewModel(factory = LobbyViewModel.provideFactory())
 ) {
     LaunchedEffect(groupId) {
@@ -104,7 +105,7 @@ fun LobbyScreen(
                 }
 
                 OutlinedButton(
-                    onClick = { /* TODO: Navigate to Past Games */ },
+                    onClick = { onNavigateToPastGames(groupId) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)

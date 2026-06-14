@@ -19,6 +19,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -46,7 +48,7 @@ object RoundDestination : NavigationDestination {
     fun createRoute(gameId: String, roundId: String) = "round/$gameId/$roundId"
 }
 
-enum class RoundSubScreen { BOXES, PICTURE_VIEW, MAP_VIEW }
+enum class RoundSubScreen { BOXES, PICTURE_VIEW, MAP_VIEW, SCORES }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("MissingPermission")
@@ -55,6 +57,7 @@ fun RoundScreen(
     gameId: String,
     roundId: String,
     onNavigateUp: () -> Unit,
+    onNavigateToRound: (String, String) -> Unit,
     viewModel: RoundViewModel = viewModel(factory = RoundViewModel.provideFactory())
 ) {
     val context = LocalContext.current
@@ -79,8 +82,13 @@ fun RoundScreen(
     }
     
     var timeLeft by remember { mutableStateOf("") }
-    LaunchedEffect(uiState.round?.endTime) {
-        val endTime = uiState.round?.endTime ?: return@LaunchedEffect
+    LaunchedEffect(uiState.round?.endTime, uiState.round?.status) {
+        val round = uiState.round ?: return@LaunchedEffect
+        if (round.status == com.example.whereami.domain.model.RoundStatus.FINISHED) {
+            timeLeft = "Finished"
+            return@LaunchedEffect
+        }
+        val endTime = round.endTime
         while (true) {
             val now = kotlin.time.Clock.System.now()
             val diff = endTime - now
@@ -91,6 +99,13 @@ fun RoundScreen(
     }
     
     var currentSubScreen by remember { mutableStateOf(RoundSubScreen.BOXES) }
+    
+    LaunchedEffect(uiState.round?.status) {
+        if (uiState.round?.status == com.example.whereami.domain.model.RoundStatus.FINISHED) {
+            currentSubScreen = RoundSubScreen.SCORES
+        }
+    }
+    
     var selectedBox by remember { mutableStateOf<PlayerBox?>(null) }
     var currentPinLocation by remember { mutableStateOf<LatLng?>(null) }
 
@@ -139,6 +154,7 @@ fun RoundScreen(
                         RoundSubScreen.BOXES -> "Round ${uiState.round?.index?.plus(1) ?: ""} - $timeLeft"
                         RoundSubScreen.PICTURE_VIEW -> "${selectedBox?.user?.username}'s Picture"
                         RoundSubScreen.MAP_VIEW -> "Guess Location"
+                        RoundSubScreen.SCORES -> "Round Scores"
                     }
                     Text(titleText) 
                 },
@@ -148,12 +164,31 @@ fun RoundScreen(
                             RoundSubScreen.BOXES -> onNavigateUp()
                             RoundSubScreen.PICTURE_VIEW -> currentSubScreen = RoundSubScreen.BOXES
                             RoundSubScreen.MAP_VIEW -> currentSubScreen = RoundSubScreen.PICTURE_VIEW
+                            RoundSubScreen.SCORES -> currentSubScreen = RoundSubScreen.BOXES
                         }
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
+        },
+        bottomBar = {
+            if (currentSubScreen == RoundSubScreen.BOXES || currentSubScreen == RoundSubScreen.SCORES) {
+                NavigationBar {
+                    NavigationBarItem(
+                        selected = currentSubScreen == RoundSubScreen.BOXES,
+                        onClick = { currentSubScreen = RoundSubScreen.BOXES },
+                        icon = { Icon(Icons.Filled.List, contentDescription = "Pictures") },
+                        label = { Text("Pictures") }
+                    )
+                    NavigationBarItem(
+                        selected = currentSubScreen == RoundSubScreen.SCORES,
+                        onClick = { currentSubScreen = RoundSubScreen.SCORES },
+                        icon = { Icon(Icons.Filled.Star, contentDescription = "Scores") },
+                        label = { Text("Scores") }
+                    )
+                }
+            }
         }
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
@@ -195,6 +230,45 @@ fun RoundScreen(
                                     }
                                 }
                             )
+                        }
+                    }
+                    RoundSubScreen.SCORES -> {
+                        if (uiState.round?.status == com.example.whereami.domain.model.RoundStatus.FINISHED) {
+                            val playerScores = uiState.round?.scoreSheets?.map { score ->
+                                val username = uiState.playerBoxes.find { it.user.id == score.playerId }?.user?.username ?: "Unknown"
+                                com.example.whereami.ui.components.PlayerScoreDisplay(username, score.score)
+                            } ?: emptyList()
+                            Column(
+                                modifier = Modifier.fillMaxSize().padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Box(modifier = Modifier.weight(1f)) {
+                                    com.example.whereami.ui.components.ScoresPodiumList(playerScores = playerScores)
+                                }
+                                
+                                val nextRound = uiState.game?.rounds?.find { it.index == (uiState.round?.index ?: -1) + 1 }
+                                if (nextRound != null) {
+                                    Button(
+                                        onClick = {
+                                            onNavigateToRound(gameId, nextRound.id)
+                                        },
+                                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+                                    ) {
+                                        Text("Next Round")
+                                    }
+                                } else {
+                                    Button(
+                                        onClick = onNavigateUp,
+                                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+                                    ) {
+                                        Text("Back to Game Details")
+                                    }
+                                }
+                            }
+                        } else {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Text("The round is not finished yet", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
+                            }
                         }
                     }
                 }
