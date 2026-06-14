@@ -111,7 +111,10 @@ fun AdvancedParametersScreen() {
             onCheckedChange = { aiHunters = it }
         )
 
-        TimeLimitCard()
+        TimeLimitCard(
+            timeLimit = timeLimit,
+            onTimeLimitChange = { timeLimit = it }
+        )
 
         ProTipCard()
 
@@ -417,7 +420,10 @@ fun MultiplierButton(
 }
 
 @Composable
-fun TimeLimitCard() {
+fun TimeLimitCard(
+    timeLimit: Float,
+    onTimeLimitChange: (Float) -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -425,39 +431,50 @@ fun TimeLimitCard() {
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
-        Row(
-            modifier = Modifier.padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier.padding(14.dp)
         ) {
-            Icon(
-                imageVector = Icons.Default.Timer,
-                contentDescription = null,
-                tint = Color(0xFF0B63F6),
-                modifier = Modifier.size(24.dp)
-            )
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Time Limit",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Timer,
+                    contentDescription = null,
+                    tint = Color(0xFF0B63F6),
+                    modifier = Modifier.size(24.dp)
                 )
 
-                Text(
-                    text = "45 Mins",
-                    fontSize = 12.sp,
-                    color = Color.Gray
-                )
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Time Limit",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp
+                    )
+
+                    Text(
+                        text = "${timeLimit.toInt()} Mins",
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                }
             }
 
-            Icon(
-                imageVector = Icons.Default.Edit,
-                contentDescription = "Edit",
-                tint = Color.Gray,
-                modifier = Modifier.size(18.dp)
+            Slider(
+                value = timeLimit,
+                onValueChange = onTimeLimitChange,
+                valueRange = 15f..120f,
+                steps = 6
             )
+
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("15 min", fontSize = 10.sp, color = Color.Gray)
+                Spacer(modifier = Modifier.weight(1f))
+                Text("120 min", fontSize = 10.sp, color = Color.Gray)
+            }
         }
     }
 }
