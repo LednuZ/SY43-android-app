@@ -99,7 +99,10 @@ fun AdvancedParametersScreen() {
             onValueChange = { voiceDistance = it }
         )
 
-        ScoreMultiplierCard()
+        ScoreMultiplierCard(
+            selectedMultiplier = selectedMultiplier,
+            onMultiplierSelected = { selectedMultiplier = it }
+        )
 
         ParameterCard(
             title = "AI Hunters",
@@ -314,7 +317,10 @@ fun VoiceChatCard(
 }
 
 @Composable
-fun ScoreMultiplierCard() {
+fun ScoreMultiplierCard(
+    selectedMultiplier: String,
+    onMultiplierSelected: (String) -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -352,10 +358,26 @@ fun ScoreMultiplierCard() {
             Spacer(modifier = Modifier.height(14.dp))
 
             Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                MultiplierButton("1.5x", "TIMES BONUS", false)
-                MultiplierButton("2.0x", "HARDCORE", true)
+                Box(modifier = Modifier.weight(1f)) {
+                    MultiplierButton(
+                        value = "1.5x",
+                        label = "TIMES BONUS",
+                        selected = selectedMultiplier == "1.5x",
+                        onClick = { onMultiplierSelected("1.5x") }
+                    )
+                }
+
+                Box(modifier = Modifier.weight(1f)) {
+                    MultiplierButton(
+                        value = "2.0x",
+                        label = "HARDCORE",
+                        selected = selectedMultiplier == "2.0x",
+                        onClick = { onMultiplierSelected("2.0x") }
+                    )
+                }
             }
         }
     }
