@@ -16,12 +16,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.whereami.data.remote.SupabaseProvider
 import com.example.whereami.navigation.NavigationDestination
 import com.example.whereami.ui.viewmodel.HomeViewModel
-import com.example.whereami.util.formatTimeLeft
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionStatus
 import io.github.jan.supabase.auth.user.UserInfo
 import kotlinx.coroutines.launch
-import kotlin.time.Clock
 
 object HomeDestination : NavigationDestination {
     override val route = "home"
@@ -32,6 +30,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     onLoginClick: () -> Unit,
     onNavigateToRound: (String, String) -> Unit,
+    onNavigateToAccount: () -> Unit = {}
 ) {
     val sessionStatus by SupabaseProvider.client.auth.sessionStatus.collectAsState(initial = SessionStatus.Initializing)
     

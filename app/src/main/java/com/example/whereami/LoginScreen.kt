@@ -186,6 +186,65 @@ fun LoginScreen(
             
             Spacer(modifier = Modifier.height(16.dp))
             
+            var resetEmailDialogVisible by remember { mutableStateOf(false) }
+            TextButton(onClick = { resetEmailDialogVisible = true }) {
+                Text("Forgot Password?")
+            }
+            
+            if (resetEmailDialogVisible) {
+                androidx.compose.material3.AlertDialog(
+                    onDismissRequest = { resetEmailDialogVisible = false },
+                    title = { Text("Reset Password") },
+                    text = {
+                        Column {
+                            Text("Enter your email address to receive a password reset link.")
+                            Spacer(modifier = Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = email,
+                                onValueChange = { email = it },
+                                singleLine = true,
+                                label = { Text("Email") },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                if (email.isNotBlank()) {
+                                    isLoading = true
+                                    resetEmailDialogVisible = false
+                                    errorMessage = null
+                                    successMessage = null
+                                    coroutineScope.launch {
+                                        try {
+                                            SupabaseProvider.client.auth.resetPasswordForEmail(
+                                                email = email,
+                                                redirectUrl = "whereami://reset-password"
+                                            )
+                                            successMessage = "Password reset email sent!"
+                                        } catch (e: Exception) {
+                                            errorMessage = e.toAppError().toUserMessage()
+                                        } finally {
+                                            isLoading = false
+                                        }
+                                    }
+                                }
+                            }
+                        ) {
+                            Text("Send Link")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { resetEmailDialogVisible = false }) {
+                            Text("Cancel")
+                        }
+                    }
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
             if (successMessage != null) {
                 Text(text = successMessage!!, color = MaterialTheme.colorScheme.primary)
             }

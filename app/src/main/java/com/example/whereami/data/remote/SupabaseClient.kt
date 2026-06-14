@@ -17,7 +17,10 @@ object SupabaseProvider {
             supabaseKey = SUPABASE_ANON_KEY
         ) {
             install(Postgrest)
-            install(Auth)
+            install(Auth) {
+                scheme = "whereami"
+                host = "reset-password"
+            }
             install(Storage)
             install(Realtime)
         }

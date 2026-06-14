@@ -6,8 +6,8 @@ import com.example.whereami.util.toAppError
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.whereami.domain.usecase.AdvanceRoundUseCase
-import com.example.whereami.domain.usecase.SubmitGuessUseCase
+import com.example.whereami.domain.usecase.round.AdvanceRoundUseCase
+import com.example.whereami.domain.usecase.round.SubmitGuessUseCase
 import com.example.whereami.data.remote.SupabaseProvider
 import com.example.whereami.data.repository.SupabaseGameRepository
 import com.example.whereami.data.repository.SupabaseUserRepository
@@ -19,8 +19,8 @@ import com.example.whereami.domain.model.User
 import com.example.whereami.domain.model.util.LatLng
 import com.example.whereami.domain.repository.GameRepository
 import com.example.whereami.domain.repository.UserRepository
-import com.example.whereami.domain.usecase.GetRoundDetailsUseCase
-import com.example.whereami.domain.usecase.UploadPictureUseCase
+import com.example.whereami.domain.usecase.round.GetRoundDetailsUseCase
+import com.example.whereami.domain.usecase.round.UploadPictureUseCase
 import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -85,14 +85,7 @@ class RoundViewModel(
                 )
                 
                 if ((details.allExpectedGuessed || details.timeIsUp) && details.round.status != com.example.whereami.domain.model.RoundStatus.FINISHED && !isAdvancingRound && details.round.index == details.game.currentRoundIndex) {
-                    // For AdvanceRoundUseCase, we need the guesses for the round
-                    // To avoid a circular dependency or complicating the UseCase further, we extract the raw guesses from playerBoxes
-                    val roundGuesses = details.playerBoxes.flatMap { pb -> 
-                        pb.guesses.map { g -> 
-                            Guess("", details.round.id, g.user.id, pb.picture?.id ?: "", g.guessLocation, Clock.System.now(), 0.0, 0) 
-                        } 
-                    }
-                    advanceRound(details.game, details.round, roundGuesses)
+                    advanceRound(details.game, details.round)
                 }
             } else {
                 _uiState.value = _uiState.value.copy(
@@ -103,13 +96,18 @@ class RoundViewModel(
         }
     }
     
-    private fun advanceRound(game: Game, round: Round, guesses: List<Guess>) {
+    private fun advanceRound(game: Game, round: Round) {
         isAdvancingRound = true
         viewModelScope.launch {
-            advanceRoundUseCase(game, round, guesses)
+            val result = advanceRoundUseCase(game, round)
             isAdvancingRound = false
-            
-            initializedGameId?.let { gid -> initializedRoundId?.let { rid -> fetchRoundData(gid, rid) } }
+            if (result.isSuccess) {
+                initializedGameId?.let { gid -> initializedRoundId?.let { rid -> fetchRoundData(gid, rid) } }
+            } else {
+                val ex = result.exceptionOrNull()
+                _uiState.value = _uiState.value.copy(error = ex?.toAppError() ?: AppError.Unknown("Failed to advance round"))
+                ex?.printStackTrace()
+            }
         }
     }
 

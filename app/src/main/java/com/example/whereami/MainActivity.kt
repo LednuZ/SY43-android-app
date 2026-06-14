@@ -23,18 +23,28 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.runtime.collectAsState
+import com.example.whereami.data.remote.SupabaseProvider
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.status.SessionStatus
+import io.github.jan.supabase.auth.handleDeeplinks
 import com.example.whereami.navigation.AppNavHost
 import com.example.whereami.ui.screens.HomeDestination
 import com.example.whereami.ui.screens.GroupsDestination
 import com.example.whereami.ui.screens.FriendsDestination
-import com.example.whereami.ui.theme.WhereAmITheme
+import com.example.whereami.ui.screens.AccountDestination
+import com.example.whereami.ui.theme.AppTheme
+
+import android.content.Intent
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        SupabaseProvider.client.handleDeeplinks(intent)
         enableEdgeToEdge()
         setContent {
-            WhereAmITheme {
+            AppTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                 ) {
@@ -42,6 +52,11 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        SupabaseProvider.client.handleDeeplinks(intent)
     }
 }
 
@@ -56,10 +71,13 @@ fun WhereAmI(
     val hiddenBottomBarRoutes = listOf(
         "game",
         "round",
-        "login"
+        "login",
+        "reset_password"
     )
     val currentRouteBase = currentRoute?.substringBefore("/")
-    val showBottomBar = currentRouteBase != null && currentRouteBase !in hiddenBottomBarRoutes
+    val sessionStatus by SupabaseProvider.client.auth.sessionStatus.collectAsState()
+    val isLoggedIn = sessionStatus is SessionStatus.Authenticated
+    val showBottomBar = currentRouteBase != null && currentRouteBase !in hiddenBottomBarRoutes && isLoggedIn
 
     Scaffold(
         bottomBar = {
@@ -104,6 +122,19 @@ fun WhereAmI(
                         icon = { Icon(Icons.Default.Person, contentDescription = "Friends") },
                         label = { Text("Friends") }
                     )
+                    NavigationBarItem(
+                        selected = currentRoute == AccountDestination.route,
+                        onClick = {
+                            if (currentRoute != AccountDestination.route) {
+                                navController.navigate(AccountDestination.route) {
+                                    popUpTo(HomeDestination.route) { inclusive = false }
+                                    launchSingleTop = true
+                                }
+                            }
+                        },
+                        icon = { Icon(Icons.Default.AccountCircle, contentDescription = "Account") },
+                        label = { Text("Account") }
+                    )
                 }
             }
         }
@@ -115,7 +146,7 @@ fun WhereAmI(
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
-    WhereAmITheme {
+    AppTheme {
         WhereAmI()
     }
 }

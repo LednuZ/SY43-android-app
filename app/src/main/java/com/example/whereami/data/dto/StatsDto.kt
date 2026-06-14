@@ -11,6 +11,13 @@ data class RoundScoreDto(
 )
 
 @Serializable
+data class RoundScoreUpsertDto(
+    val round_id: String,
+    val player_id: String,
+    val score: Int
+)
+
+@Serializable
 data class PlayerStatsDto(
     val player_id: String,
     val total_score: Int,

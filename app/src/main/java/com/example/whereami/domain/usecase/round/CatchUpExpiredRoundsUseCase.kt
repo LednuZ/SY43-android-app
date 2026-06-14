@@ -1,4 +1,4 @@
-package com.example.whereami.domain.usecase
+package com.example.whereami.domain.usecase.round
 
 import com.example.whereami.domain.model.Game
 import com.example.whereami.domain.repository.GameRepository
@@ -14,10 +14,7 @@ class CatchUpExpiredRoundsUseCase(
             val currentRound = updatedGame.rounds.firstOrNull { it.index == updatedGame.currentRoundIndex } ?: break
             
             if (currentRound.endTime < kotlin.time.Clock.System.now() && currentRound.status != com.example.whereami.domain.model.RoundStatus.FINISHED) {
-                val guessesResult = gameRepository.getGuessesForRound(currentRound.id)
-                val guesses = if (guessesResult.isSuccess) guessesResult.getOrThrow() else emptyList()
-                
-                val advanceResult = advanceRoundUseCase(updatedGame, currentRound, guesses)
+                val advanceResult = advanceRoundUseCase(updatedGame, currentRound)
                 if (advanceResult.isSuccess) {
                     updatedGame = advanceResult.getOrThrow()
                 } else {

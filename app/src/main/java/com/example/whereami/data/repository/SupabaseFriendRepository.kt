@@ -72,4 +72,23 @@ class SupabaseFriendRepository(private val client: SupabaseClient) : FriendRepos
             }.decodeList<FriendDto>().map { it.player_2_id }.toSet()
         }
     }
+
+    override suspend fun deleteFriend(user1: String, user2: String): Result<Unit> {
+        return runCatching {
+            // Try deleting where user1 is player_1
+            client.from("friendships").delete {
+                filter {
+                    eq("player_1_id", user1)
+                    eq("player_2_id", user2)
+                }
+            }
+            // Try deleting where user2 is player_1
+            client.from("friendships").delete {
+                filter {
+                    eq("player_1_id", user2)
+                    eq("player_2_id", user1)
+                }
+            }
+        }
+    }
 }

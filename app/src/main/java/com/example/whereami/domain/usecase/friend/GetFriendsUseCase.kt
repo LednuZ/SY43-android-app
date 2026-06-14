@@ -1,4 +1,4 @@
-package com.example.whereami.domain.usecase
+package com.example.whereami.domain.usecase.friend
 
 import com.example.whereami.domain.model.User
 import com.example.whereami.domain.repository.FriendRepository

@@ -1,8 +1,9 @@
-package com.example.whereami.domain.usecase
+package com.example.whereami.domain.usecase.game
 
 import com.example.whereami.domain.model.DashboardGame
 import com.example.whereami.domain.repository.GameRepository
 import com.example.whereami.domain.repository.GroupRepository
+import com.example.whereami.domain.usecase.round.CatchUpExpiredRoundsUseCase
 
 class GetDashboardGamesUseCase(
     private val gameRepository: GameRepository,

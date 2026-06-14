@@ -38,7 +38,7 @@ fun RoundPictureSubScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     if (selectedBox.isRevealed) Text("View Results on Map")
-                    else if (selectedBox.currentUserHasGuessed) Text("Update Guess")
+                    else if (selectedBox.currentUserHasGuessed) Text("View Guess")
                     else Text("Guess Location")
                 }
             } else if (selectedBox.isRevealed) {

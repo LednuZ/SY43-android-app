@@ -26,6 +26,8 @@ data class GameScoreDto(
     val date_last_update: String? = null
 )
 
+
+
 @Serializable
 data class RoundDto(
     val id: String? = null,

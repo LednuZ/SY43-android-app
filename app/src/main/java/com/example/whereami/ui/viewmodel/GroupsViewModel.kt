@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.whereami.data.remote.SupabaseProvider
 import com.example.whereami.data.repository.SupabaseGroupRepository
 import com.example.whereami.domain.model.Group
-import com.example.whereami.domain.usecase.GetGroupsUseCase
+import com.example.whereami.domain.usecase.group.GetGroupsUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

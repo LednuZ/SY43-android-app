@@ -85,6 +85,20 @@ fun GameScreen(
                     }
                 }
 
+                if (uiState.game?.status == com.example.whereami.domain.model.GameStatus.FINISHED) {
+                    item {
+                        Text("Game Results", style = MaterialTheme.typography.titleLarge)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        val playerScores = uiState.game!!.scoreSheets.map { score ->
+                            val username = uiState.playerUsernames[score.playerId] ?: "Unknown"
+                            com.example.whereami.ui.components.PlayerScoreDisplay(username, score.score)
+                        }
+                        com.example.whereami.ui.components.ScoresPodiumList(playerScores = playerScores)
+                        Spacer(modifier = Modifier.height(32.dp))
+                    }
+                }
+
                 item {
                     Text("Current Rounds", style = MaterialTheme.typography.titleLarge)
                     Spacer(modifier = Modifier.height(8.dp))

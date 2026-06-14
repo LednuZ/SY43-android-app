@@ -7,8 +7,9 @@ import com.example.whereami.data.remote.SupabaseProvider
 import com.example.whereami.data.repository.SupabaseGameRepository
 import com.example.whereami.data.repository.SupabaseGroupRepository
 import com.example.whereami.domain.model.GameSettings
-import com.example.whereami.domain.usecase.CreateGameResult
-import com.example.whereami.domain.usecase.CreateGameUseCase
+import com.example.whereami.domain.model.Group
+import com.example.whereami.domain.usecase.game.CreateGameUseCase
+import com.example.whereami.domain.usecase.game.CreateGameResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

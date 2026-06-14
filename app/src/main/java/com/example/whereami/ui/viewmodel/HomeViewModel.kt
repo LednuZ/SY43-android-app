@@ -6,9 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.whereami.data.remote.SupabaseProvider
 import com.example.whereami.data.repository.SupabaseGameRepository
 import com.example.whereami.data.repository.SupabaseGroupRepository
-import com.example.whereami.domain.usecase.GetDashboardGamesUseCase
-import com.example.whereami.domain.usecase.AdvanceRoundUseCase
-import com.example.whereami.domain.usecase.CatchUpExpiredRoundsUseCase
+import com.example.whereami.domain.usecase.game.GetDashboardGamesUseCase
+import com.example.whereami.domain.usecase.round.AdvanceRoundUseCase
+import com.example.whereami.domain.usecase.round.CatchUpExpiredRoundsUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

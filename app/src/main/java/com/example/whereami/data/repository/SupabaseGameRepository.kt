@@ -33,12 +33,29 @@ class SupabaseGameRepository(private val client: SupabaseClient) : GameRepositor
 
             val scoreDtos = game.scoreSheets.map { it.toDto(game.id) }
             if (scoreDtos.isNotEmpty()) {
-                client.from("game_scores").upsert(scoreDtos)
+                client.from("game_scores").upsert(scoreDtos) {
+                    onConflict = "game_id,player_id"
+                }
             }
 
             val roundDtos = game.rounds.map { it.toDto() }
             if (roundDtos.isNotEmpty()) {
                 client.from("rounds").upsert(roundDtos)
+            }
+
+            val roundScoresDtos = game.rounds.flatMap { r ->
+                r.scoreSheets.map { score ->
+                    RoundScoreUpsertDto(
+                        round_id = r.id,
+                        player_id = score.playerId,
+                        score = score.score
+                    )
+                }
+            }
+            if (roundScoresDtos.isNotEmpty()) {
+                client.from("round_scores").upsert(roundScoresDtos) {
+                    onConflict = "round_id,player_id"
+                }
             }
         }
     }
@@ -73,6 +90,23 @@ class SupabaseGameRepository(private val client: SupabaseClient) : GameRepositor
                 filter {
                     isIn("id", gameIds)
                     neq("status", GameStatus.FINISHED.name)
+                }
+            }.decodeList<GameDto>()
+
+            gamesDtos.map { dto ->
+                val rounds = getRoundsForGame(dto.id!!)
+                val scores = getScoresForGame(dto.id)
+                dto.toDomain(rounds, scores)
+            }
+        }
+    }
+
+    override suspend fun getPastGamesForGroup(groupId: String): Result<List<Game>> {
+        return runCatching {
+            val gamesDtos = client.from("games").select {
+                filter {
+                    eq("group_id", groupId)
+                    eq("status", GameStatus.FINISHED.name)
                 }
             }.decodeList<GameDto>()
 
@@ -153,9 +187,17 @@ class SupabaseGameRepository(private val client: SupabaseClient) : GameRepositor
             filter { eq("game_id", gameId) }
         }.decodeList<RoundDto>()
 
-        return roundDtos.map { roundDto ->
-            val pictures = getPicturesForRound(roundDto.id!!)
-            roundDto.toDomain(pictures)
+        return roundDtos.map { dto ->
+            val pictures = client.from("pictures").select {
+                filter { eq("round_id", dto.id!!) }
+            }.decodeList<PictureDto>().map { it.toDomain() }
+
+            val scoresDtos = client.from("round_scores").select {
+                filter { eq("round_id", dto.id!!) }
+            }.decodeList<RoundScoreDto>()
+            val scores = scoresDtos.map { Score(playerId = it.player_id, score = it.score, lastUpdated = kotlin.time.Clock.System.now()) }
+
+            dto.toDomain(pictures, scores)
         }
     }
 
@@ -227,15 +269,16 @@ class SupabaseGameRepository(private val client: SupabaseClient) : GameRepositor
         )
     }
 
-    private fun RoundDto.toDomain(pictures: List<Picture>): Round {
+    private fun RoundDto.toDomain(pictures: List<Picture>, scores: List<Score> = emptyList()): Round {
         return Round(
             id = id ?: "",
             gameId = game_id,
+            posts = pictures.toMutableList(),
             index = index,
             status = RoundStatus.valueOf(status),
-            posts = pictures.toMutableList(),
             startTime = Instant.parse(start_time),
-            endTime = Instant.parse(end_time)
+            endTime = Instant.parse(end_time),
+            scoreSheets = scores
         )
     }
 

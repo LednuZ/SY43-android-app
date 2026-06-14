@@ -1,4 +1,4 @@
-package com.example.whereami.domain.usecase
+package com.example.whereami.domain.usecase.round
 
 import com.example.whereami.domain.model.util.LatLng
 import com.example.whereami.domain.repository.GameRepository

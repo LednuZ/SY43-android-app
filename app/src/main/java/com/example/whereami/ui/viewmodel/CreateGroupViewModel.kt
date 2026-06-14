@@ -8,8 +8,8 @@ import com.example.whereami.data.repository.SupabaseFriendRepository
 import com.example.whereami.data.repository.SupabaseGroupRepository
 import com.example.whereami.data.repository.SupabaseUserRepository
 import com.example.whereami.domain.model.User
-import com.example.whereami.domain.usecase.CreateGroupUseCase
-import com.example.whereami.domain.usecase.GetFriendsUseCase
+import com.example.whereami.domain.usecase.group.CreateGroupUseCase
+import com.example.whereami.domain.usecase.friend.GetFriendsUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

@@ -65,24 +65,41 @@ fun RoundMapSubScreen(
                         guessMarker.showInfoWindow()
                     }
                 } else {
-                    val mReceive = MapEventsOverlay(object : MapEventsReceiver {
-                        override fun singleTapConfirmedHelper(p: GeoPoint?): Boolean {
-                            if (p != null) {
-                                onPinLocationChanged(LatLng(p.latitude, p.longitude))
-                                return true
+                    if (!selectedBox.currentUserHasGuessed) {
+                        val mReceive = MapEventsOverlay(object : MapEventsReceiver {
+                            override fun singleTapConfirmedHelper(p: GeoPoint?): Boolean {
+                                if (p != null) {
+                                    onPinLocationChanged(LatLng(p.latitude, p.longitude))
+                                    return true
+                                }
+                                return false
                             }
-                            return false
+                            override fun longPressHelper(p: GeoPoint?): Boolean = false
+                        })
+                        mapView.overlays.add(mReceive)
+                    }
+
+                    // Show user's own guess if they have guessed
+                    if (selectedBox.currentUserHasGuessed) {
+                        val userGuess = selectedBox.guesses.find { it.user.id == uiState.currentUserId }
+                        if (userGuess != null) {
+                            val guessIcon = ContextCompat.getDrawable(mapView.context, org.osmdroid.library.R.drawable.marker_default)?.mutate()
+                            guessIcon?.setTint(android.graphics.Color.BLUE)
+                            val guessMarker = Marker(mapView)
+                            guessMarker.position = GeoPoint(userGuess.guessLocation.latitude, userGuess.guessLocation.longitude)
+                            guessMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                            guessMarker.title = "Your Guess"
+                            guessMarker.icon = guessIcon
+                            mapView.overlays.add(guessMarker)
                         }
-                        override fun longPressHelper(p: GeoPoint?): Boolean = false
-                    })
-                    mapView.overlays.add(mReceive)
-                }
-                
-                currentPinLocation?.let { pin ->
-                    val pinMarker = Marker(mapView)
-                    pinMarker.position = GeoPoint(pin.latitude, pin.longitude)
-                    pinMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                    mapView.overlays.add(pinMarker)
+                    } else {
+                        currentPinLocation?.let { pin ->
+                            val pinMarker = Marker(mapView)
+                            pinMarker.position = GeoPoint(pin.latitude, pin.longitude)
+                            pinMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                            mapView.overlays.add(pinMarker)
+                        }
+                    }
                 }
                 
                 mapView.invalidate()
