@@ -52,6 +52,9 @@ fun AdvancedParametersScreen() {
     var aiHunters by remember { mutableStateOf(false) }
     var voiceDistance by remember { mutableFloatStateOf(50f) }
 
+    var selectedMultiplier by remember { mutableStateOf("2.0x") }
+    var timeLimit by remember { mutableFloatStateOf(45f) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
