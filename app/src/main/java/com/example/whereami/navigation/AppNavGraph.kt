@@ -34,6 +34,11 @@ import com.example.whereami.ui.screens.PastGamesScreen
 import com.example.whereami.data.remote.SupabaseProvider
 import io.github.jan.supabase.auth.auth
 import androidx.navigation.navDeepLink
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 
 @Composable
 fun AppNavHost(
@@ -44,7 +49,31 @@ fun AppNavHost(
     NavHost(
         navController=navController,
         startDestination = HomeDestination.route,
-        modifier = modifier
+        modifier = modifier,
+        enterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { it },
+                animationSpec = tween(300)
+            ) + fadeIn(animationSpec = tween(300))
+        },
+        exitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { -it / 3 },
+                animationSpec = tween(300)
+            ) + fadeOut(animationSpec = tween(300))
+        },
+        popEnterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { -it / 3 },
+                animationSpec = tween(300)
+            ) + fadeIn(animationSpec = tween(300))
+        },
+        popExitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { it },
+                animationSpec = tween(300)
+            ) + fadeOut(animationSpec = tween(300))
+        }
     ){
         composable (route = HomeDestination.route)
         {

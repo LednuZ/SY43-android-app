@@ -20,6 +20,10 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionStatus
 import io.github.jan.supabase.auth.user.UserInfo
 import kotlinx.coroutines.launch
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 
 object HomeDestination : NavigationDestination {
     override val route = "home"
@@ -35,20 +39,22 @@ fun HomeScreen(
     val sessionStatus by SupabaseProvider.client.auth.sessionStatus.collectAsState(initial = SessionStatus.Initializing)
     
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        when (sessionStatus) {
-            is SessionStatus.Authenticated -> {
-                val user = (sessionStatus as SessionStatus.Authenticated).session.user
-                DashboardScreen(
-                    user = user,
-                    onNavigateToRound = onNavigateToRound,
-                )
-            }
-            is SessionStatus.Initializing -> {
-                CircularProgressIndicator()
-            }
-            else -> {
-                LaunchedEffect(Unit) {
-                    onLoginClick()
+        Crossfade(targetState = sessionStatus, label = "SessionCrossfade") { status ->
+            when (status) {
+                is SessionStatus.Authenticated -> {
+                    val user = (status as SessionStatus.Authenticated).session.user
+                    DashboardScreen(
+                        user = user,
+                        onNavigateToRound = onNavigateToRound,
+                    )
+                }
+                is SessionStatus.Initializing -> {
+                    CircularProgressIndicator()
+                }
+                else -> {
+                    LaunchedEffect(Unit) {
+                        onLoginClick()
+                    }
                 }
             }
         }
@@ -67,7 +73,7 @@ fun DashboardScreen(
     val coroutineScope = rememberCoroutineScope()
     var isSigningOut by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsState()
-    
+
     LaunchedEffect(user?.id) {
         if (user != null) {
             viewModel.fetchActiveGames(user.id)
@@ -82,7 +88,9 @@ fun DashboardScreen(
                 title = { Text("WhereAmI") },
                 actions = {
                     if (isSigningOut) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp).padding(end = 16.dp))
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp).padding(end = 16.dp)
+                        )
                     } else {
                         IconButton(onClick = {
                             isSigningOut = true
@@ -94,7 +102,11 @@ fun DashboardScreen(
                                 }
                             }
                         }) {
-                            Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Sign Out", tint = MaterialTheme.colorScheme.error)
+                            Icon(
+                                Icons.AutoMirrored.Filled.ExitToApp,
+                                contentDescription = "Sign Out",
+                                tint = MaterialTheme.colorScheme.error
+                            )
                         }
                     }
                 }
@@ -106,62 +118,119 @@ fun DashboardScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Welcome back, $userDisplay!", fontSize = 20.sp, color = MaterialTheme.colorScheme.primary)
+            Text(
+                "Welcome back, $userDisplay!",
+                fontSize = 20.sp,
+                color = MaterialTheme.colorScheme.primary
+            )
             Spacer(modifier = Modifier.height(24.dp))
-            
+
             Spacer(modifier = Modifier.height(32.dp))
 
-            Text("Active Games", style = MaterialTheme.typography.titleLarge, modifier = Modifier.align(Alignment.Start))
+            Text(
+                "Active Games",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.align(Alignment.Start)
+            )
             Spacer(modifier = Modifier.height(16.dp))
-        
-        if (uiState.isLoading) {
-            CircularProgressIndicator()
-        } else if (uiState.error != null) {
-            Text("Error: ${uiState.error}", color = MaterialTheme.colorScheme.error)
-        } else if (uiState.activeGames.isEmpty()) {
-            Text("You have no active games right now.", color = MaterialTheme.colorScheme.secondary)
-        } else {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.weight(1f).fillMaxWidth()
-            ) {
-                items(uiState.activeGames) { game ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth().clickable { onNavigateToRound(game.gameId, game.currentRoundId) },
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                "Game in ${game.groupName}",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.primary
-                            )
 
-                            Spacer(modifier = Modifier.height(16.dp))
-                            
-                            if (game.needsUpload) {
-                                Button(
-                                    onClick = { onNavigateToRound(game.gameId, game.currentRoundId) },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+            Crossfade(
+                targetState = when {
+                    uiState.isLoading -> "loading"
+                    uiState.error != null -> "error"
+                    uiState.activeGames.isEmpty() -> "empty"
+                    else -> "content"
+                },
+                label = "DashboardContent",
+                modifier = Modifier.weight(1f).fillMaxWidth()
+            ) { state ->
+                when (state) {
+                    "loading" -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+
+                    "error" -> {
+                        Text("Error: ${uiState.error}", color = MaterialTheme.colorScheme.error)
+                    }
+
+                    "empty" -> {
+                        Text(
+                            "You have no active games right now.",
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+
+                    "content" -> {
+                        LazyColumn(
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            items(items = uiState.activeGames, key = { it.gameId }) { game ->
+                                Card(
+                                    modifier = Modifier.fillMaxWidth().animateItem().clickable {
+                                        onNavigateToRound(
+                                            game.gameId,
+                                            game.currentRoundId
+                                        )
+                                    },
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                                 ) {
-                                    Text("You need to upload a picture!")
+                                    Column(modifier = Modifier.padding(16.dp)) {
+                                        Text(
+                                            "Game in ${game.groupName}",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+
+                                        Spacer(modifier = Modifier.height(16.dp))
+
+                                        if (game.needsUpload) {
+                                            Button(
+                                                onClick = {
+                                                    onNavigateToRound(
+                                                        game.gameId,
+                                                        game.currentRoundId
+                                                    )
+                                                },
+                                                modifier = Modifier.fillMaxWidth(),
+                                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                                            ) {
+                                                Text("You need to upload a picture!")
+                                            }
+                                        } else {
+                                            Text(
+                                                "Picture uploaded",
+                                                color = MaterialTheme.colorScheme.secondary
+                                            )
+                                        }
+
+                                        Spacer(modifier = Modifier.height(8.dp))
+
+                                        if (game.picturesToGuessCount > 0) {
+                                            Button(
+                                                onClick = {
+                                                    onNavigateToRound(
+                                                        game.gameId,
+                                                        game.currentRoundId
+                                                    )
+                                                },
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                Text("${game.picturesToGuessCount} picture(s) waiting for your guess!")
+                                            }
+                                        } else {
+                                            Text(
+                                                "No pictures waiting for guesses",
+                                                color = MaterialTheme.colorScheme.secondary
+                                            )
+                                        }
+                                    }
                                 }
-                            } else {
-                                Text("Picture uploaded", color = MaterialTheme.colorScheme.secondary)
-                            }
-                            
-                            Spacer(modifier = Modifier.height(8.dp))
-                            
-                            if (game.picturesToGuessCount > 0) {
-                                Button(
-                                    onClick = { onNavigateToRound(game.gameId, game.currentRoundId) },
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Text("${game.picturesToGuessCount} picture(s) waiting for your guess!")
-                                }
-                            } else {
-                                Text("No pictures waiting for guesses", color = MaterialTheme.colorScheme.secondary)
                             }
                         }
                     }
@@ -169,5 +238,4 @@ fun DashboardScreen(
             }
         }
     }
-}
 }
