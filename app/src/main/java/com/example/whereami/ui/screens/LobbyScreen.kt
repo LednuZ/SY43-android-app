@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
+import com.example.whereami.ui.components.AnimatedDialog
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -165,9 +166,9 @@ fun LobbyScreen(
         }
         
         if (uiState.isAddMemberDialogVisible) {
-            AlertDialog(
+            AnimatedDialog(
                 onDismissRequest = { viewModel.hideAddMemberDialog() },
-                title = { Text("Add Member") },
+                title = "Add Member",
                 text = {
                     if (uiState.isAddingMember && uiState.availableFriendsToAdd.isEmpty()) {
                         CircularProgressIndicator(modifier = Modifier.padding(16.dp))

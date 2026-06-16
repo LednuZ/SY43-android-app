@@ -3,6 +3,7 @@ package com.example.whereami.ui.screens
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
+import com.example.whereami.ui.components.ShimmerLogo
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,7 +50,7 @@ fun HomeScreen(
                     )
                 }
                 is SessionStatus.Initializing -> {
-                    CircularProgressIndicator()
+                    ShimmerLogo()
                 }
                 else -> {
                     LaunchedEffect(Unit) {
@@ -88,7 +89,7 @@ fun DashboardScreen(
                 title = { Text("WhereAmI") },
                 actions = {
                     if (isSigningOut) {
-                        CircularProgressIndicator(
+                        ShimmerLogo(
                             modifier = Modifier.size(24.dp).padding(end = 16.dp)
                         )
                     } else {
@@ -150,7 +151,7 @@ fun DashboardScreen(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator()
+                            ShimmerLogo()
                         }
                     }
 

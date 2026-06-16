@@ -1,6 +1,7 @@
 package com.example.whereami
 
 import androidx.activity.ComponentActivity
+import com.example.whereami.ui.components.AnimatedDialog
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -201,9 +202,9 @@ fun LoginScreen(
                     }
 
                     if (resetEmailDialogVisible) {
-                        androidx.compose.material3.AlertDialog(
+                        AnimatedDialog(
                             onDismissRequest = { resetEmailDialogVisible = false },
-                            title = { Text("Reset Password") },
+                            title = "Reset Password",
                             text = {
                                 Column {
                                     Text("Enter your email address to receive a password reset link.")

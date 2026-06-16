@@ -10,6 +10,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
+import androidx.compose.material3.CircularProgressIndicator
+import com.example.whereami.ui.components.AnimatedDialog
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -164,9 +166,9 @@ fun FriendsScreen(
         }
 
         if (friendToDelete != null) {
-            AlertDialog(
+            AnimatedDialog(
                 onDismissRequest = { friendToDelete = null },
-                title = { Text("Delete Friend") },
+                title = "Delete Friend",
                 text = { Text("Are you sure you want to remove ${friendToDelete?.username} from your friends?") },
                 confirmButton = {
                     TextButton(

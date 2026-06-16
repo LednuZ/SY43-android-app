@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import com.example.whereami.ui.components.ShimmerLogo
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -13,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.whereami.navigation.NavigationDestination
@@ -95,7 +96,7 @@ fun AccountScreen(
                 .padding(horizontal = 16.dp)
         ) {
             if (uiState.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                ShimmerLogo(modifier = Modifier.align(Alignment.Center))
             } else {
                 Column(
                     modifier = Modifier
@@ -226,7 +227,7 @@ fun AccountScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
                     ) {
                         if (isResettingPassword) {
-                            CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onSecondary)
+                            ShimmerLogo(modifier = Modifier.size(24.dp))
                         } else {
                             Text("Modify Password")
                         }
@@ -266,9 +267,9 @@ fun AccountScreen(
             }
 
             if (showDeleteConfirmation) {
-                AlertDialog(
+                com.example.whereami.ui.components.AnimatedDialog(
                     onDismissRequest = { showDeleteConfirmation = false },
-                    title = { Text("Delete Account?") },
+                    title = "Delete Account?",
                     text = { 
                         Text("Are you absolutely sure you want to delete your account? This action is irreversible. All your personal data will be anonymized and you will be removed from all groups.") 
                     },
