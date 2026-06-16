@@ -47,27 +47,15 @@ fun HomeScreen(
                 CircularProgressIndicator()
             }
             else -> {
-                WelcomeScreen(onLoginClick = onLoginClick)
+                LaunchedEffect(Unit) {
+                    onLoginClick()
+                }
             }
         }
     }
 }
 
-@Composable
-fun WelcomeScreen(onLoginClick: () -> Unit) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text("Welcome to WhereAmI", fontSize = 24.sp, color = MaterialTheme.colorScheme.primary)
-        Spacer(modifier = Modifier.height(32.dp))
-        ElevatedButton(
-            onClick = onLoginClick
-        ) {
-            Text("Login to Play")
-        }
-    }
-}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

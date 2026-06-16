@@ -49,7 +49,11 @@ fun AppNavHost(
         composable (route = HomeDestination.route)
         {
             HomeScreen(
-                onLoginClick = { navController.navigate(LoginDestination.route) },
+                onLoginClick = { 
+                    navController.navigate(LoginDestination.route) {
+                        popUpTo(HomeDestination.route) { inclusive = true }
+                    }
+                },
                 onNavigateToRound = { gameId, roundId -> navController.navigate(RoundDestination.createRoute(gameId, roundId)) },
                 onNavigateToAccount = { navController.navigate(AccountDestination.route) }
             )
@@ -58,11 +62,10 @@ fun AppNavHost(
         composable (route = LoginDestination.route)
         {
             LoginScreen(
-                onGoBackClick = {
-                    navController.popBackStack()
-                },
                 onLoginSuccess = {
-                    navController.popBackStack()
+                    navController.navigate(HomeDestination.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             )
         }

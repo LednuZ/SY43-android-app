@@ -1,6 +1,7 @@
 package com.example.whereami
 
 import androidx.activity.ComponentActivity
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -39,6 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import com.example.whereami.data.remote.SupabaseProvider
 import com.example.whereami.navigation.NavigationDestination
 import io.github.jan.supabase.auth.auth
@@ -53,7 +56,6 @@ object LoginDestination : NavigationDestination {
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
-    onGoBackClick: () -> Unit,
     onLoginSuccess: () -> Unit
 ){
     val context = LocalContext.current
@@ -82,147 +84,74 @@ fun LoginScreen(
             Column(
                 modifier = modifier.fillMaxSize().padding(paddingValues).padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.SpaceEvenly,
         ) {
-            Spacer(modifier = Modifier.weight(1f))
-            Text("Welcome to WhereAmI", fontSize = 24.sp, color = MaterialTheme.colorScheme.primary)
-            Spacer(modifier = Modifier.height(32.dp))
-            
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                singleLine = true,
-                label = { Text("Email") },
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            SecureTextField(
-                state = password,
-                label = { Text("Password") },
-                shape = RoundedCornerShape(12.dp),
-                textObfuscationMode = if (isVisible) TextObfuscationMode.Visible else TextObfuscationMode.RevealLastTyped,
-                trailingIcon = {
-                    IconButton(onClick = {isVisible = !isVisible}) {
-                        Icon(
-                            imageVector = Icons.Filled.Visibility,
-                            contentDescription = "View"
-                        )
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            if (isLoading) {
-                CircularProgressIndicator()
-            } else {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    ElevatedButton(
-                        onClick = {
-                            val passStr = password.text.toString()
-                            if (email.isBlank() || passStr.isBlank()) {
-                                errorMessage = "Please enter email and password"
-                                return@ElevatedButton
+                Image(
+                    painter = painterResource(R.drawable.whereami_logo),
+                    contentDescription = "WhereAmI Logo",
+                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.SpaceEvenly,
+                ){
+                    Text("Welcome to WhereAmI", fontSize = 24.sp, color = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        singleLine = true,
+                        label = { Text("Email") },
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    SecureTextField(
+                        state = password,
+                        label = { Text("Password") },
+                        shape = RoundedCornerShape(12.dp),
+                        textObfuscationMode = if (isVisible) TextObfuscationMode.Visible else TextObfuscationMode.RevealLastTyped,
+                        trailingIcon = {
+                            IconButton(onClick = {isVisible = !isVisible}) {
+                                Icon(
+                                    imageVector = Icons.Filled.Visibility,
+                                    contentDescription = "View"
+                                )
                             }
-                            isLoading = true
-                            errorMessage = null
-                            successMessage = null
-                            coroutineScope.launch {
-                                try {
-                                    SupabaseProvider.client.auth.signInWith(Email) {
-                                        this.email = email
-                                        this.password = passStr
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    if (isLoading) {
+                        CircularProgressIndicator()
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            ElevatedButton(
+                                onClick = {
+                                    val passStr = password.text.toString()
+                                    if (email.isBlank() || passStr.isBlank()) {
+                                        errorMessage = "Please enter email and password"
+                                        return@ElevatedButton
                                     }
-                                    successMessage = "Logged in successfully!"
-                                    kotlinx.coroutines.delay(500)
-                                    onLoginSuccess()
-                                } catch (e: Exception) {
-                                    errorMessage = e.toAppError().toUserMessage()
-                                } finally {
-                                    isLoading = false
-                                }
-                            }
-                        }
-                    ) {
-                        Text("Login")
-                    }
-                    
-                    OutlinedButton(
-                        onClick = {
-                            val passStr = password.text.toString()
-                            if (email.isBlank() || passStr.isBlank()) {
-                                errorMessage = "Please enter email and password"
-                                return@OutlinedButton
-                            }
-                            isLoading = true
-                            errorMessage = null
-                            successMessage = null
-                            coroutineScope.launch {
-                                try {
-                                    SupabaseProvider.client.auth.signUpWith(Email) {
-                                        this.email = email
-                                        this.password = passStr
-                                    }
-                                    successMessage = "Account created! Logging you in..."
-                                } catch (e: Exception) {
-                                    errorMessage = e.toAppError().toUserMessage()
-                                } finally {
-                                    isLoading = false
-                                }
-                            }
-                        }
-                    ) {
-                        Text("Sign Up")
-                    }
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            var resetEmailDialogVisible by remember { mutableStateOf(false) }
-            TextButton(onClick = { resetEmailDialogVisible = true }) {
-                Text("Forgot Password?")
-            }
-            
-            if (resetEmailDialogVisible) {
-                androidx.compose.material3.AlertDialog(
-                    onDismissRequest = { resetEmailDialogVisible = false },
-                    title = { Text("Reset Password") },
-                    text = {
-                        Column {
-                            Text("Enter your email address to receive a password reset link.")
-                            Spacer(modifier = Modifier.height(8.dp))
-                            OutlinedTextField(
-                                value = email,
-                                onValueChange = { email = it },
-                                singleLine = true,
-                                label = { Text("Email") },
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
-                    },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                if (email.isNotBlank()) {
                                     isLoading = true
-                                    resetEmailDialogVisible = false
                                     errorMessage = null
                                     successMessage = null
                                     coroutineScope.launch {
                                         try {
-                                            SupabaseProvider.client.auth.resetPasswordForEmail(
-                                                email = email,
-                                                redirectUrl = "whereami://reset-password"
-                                            )
-                                            successMessage = "Password reset email sent!"
+                                            SupabaseProvider.client.auth.signInWith(Email) {
+                                                this.email = email
+                                                this.password = passStr
+                                            }
+                                            successMessage = "Logged in successfully!"
+                                            kotlinx.coroutines.delay(500)
+                                            onLoginSuccess()
                                         } catch (e: Exception) {
                                             errorMessage = e.toAppError().toUserMessage()
                                         } finally {
@@ -230,32 +159,106 @@ fun LoginScreen(
                                         }
                                     }
                                 }
+                            ) {
+                                Text("Login")
                             }
-                        ) {
-                            Text("Send Link")
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { resetEmailDialogVisible = false }) {
-                            Text("Cancel")
+
+                            OutlinedButton(
+                                onClick = {
+                                    val passStr = password.text.toString()
+                                    if (email.isBlank() || passStr.isBlank()) {
+                                        errorMessage = "Please enter email and password"
+                                        return@OutlinedButton
+                                    }
+                                    isLoading = true
+                                    errorMessage = null
+                                    successMessage = null
+                                    coroutineScope.launch {
+                                        try {
+                                            SupabaseProvider.client.auth.signUpWith(Email) {
+                                                this.email = email
+                                                this.password = passStr
+                                            }
+                                            successMessage = "Account created! Logging you in..."
+                                        } catch (e: Exception) {
+                                            errorMessage = e.toAppError().toUserMessage()
+                                        } finally {
+                                            isLoading = false
+                                        }
+                                    }
+                                }
+                            ) {
+                                Text("Sign Up")
+                            }
                         }
                     }
-                )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    var resetEmailDialogVisible by remember { mutableStateOf(false) }
+                    TextButton(onClick = { resetEmailDialogVisible = true }) {
+                        Text("Forgot Password?")
+                    }
+
+                    if (resetEmailDialogVisible) {
+                        androidx.compose.material3.AlertDialog(
+                            onDismissRequest = { resetEmailDialogVisible = false },
+                            title = { Text("Reset Password") },
+                            text = {
+                                Column {
+                                    Text("Enter your email address to receive a password reset link.")
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    OutlinedTextField(
+                                        value = email,
+                                        onValueChange = { email = it },
+                                        singleLine = true,
+                                        label = { Text("Email") },
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                            },
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        if (email.isNotBlank()) {
+                                            isLoading = true
+                                            resetEmailDialogVisible = false
+                                            errorMessage = null
+                                            successMessage = null
+                                            coroutineScope.launch {
+                                                try {
+                                                    SupabaseProvider.client.auth.resetPasswordForEmail(
+                                                        email = email,
+                                                        redirectUrl = "whereami://reset-password"
+                                                    )
+                                                    successMessage = "Password reset email sent!"
+                                                } catch (e: Exception) {
+                                                    errorMessage = e.toAppError().toUserMessage()
+                                                } finally {
+                                                    isLoading = false
+                                                }
+                                            }
+                                        }
+                                    }
+                                ) {
+                                    Text("Send Link")
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { resetEmailDialogVisible = false }) {
+                                    Text("Cancel")
+                                }
+                            }
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    if (successMessage != null) {
+                        Text(text = successMessage!!, color = MaterialTheme.colorScheme.primary)
+                    }
+                }
             }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            if (successMessage != null) {
-                Text(text = successMessage!!, color = MaterialTheme.colorScheme.primary)
-            }
-            
-            Spacer(modifier = Modifier.weight(1f))
-            TextButton(
-                onClick = onGoBackClick
-            ) {
-                Text("Go Back")
-            }
-        }
         }
     }
 }
