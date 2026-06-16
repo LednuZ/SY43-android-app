@@ -39,20 +39,26 @@ fun HomeScreen(
 ) {
     val sessionStatus by SupabaseProvider.client.auth.sessionStatus.collectAsState(initial = SessionStatus.Initializing)
     
-    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Crossfade(targetState = sessionStatus, label = "SessionCrossfade") { status ->
-            when (status) {
-                is SessionStatus.Authenticated -> {
-                    val user = (status as SessionStatus.Authenticated).session.user
-                    DashboardScreen(
-                        user = user,
-                        onNavigateToRound = onNavigateToRound,
-                    )
-                }
-                is SessionStatus.Initializing -> {
+    Crossfade(
+        targetState = sessionStatus, 
+        label = "SessionCrossfade",
+        modifier = modifier.fillMaxSize()
+    ) { status ->
+        when (status) {
+            is SessionStatus.Authenticated -> {
+                val user = (status as SessionStatus.Authenticated).session.user
+                DashboardScreen(
+                    user = user,
+                    onNavigateToRound = onNavigateToRound,
+                )
+            }
+            is SessionStatus.Initializing -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     ShimmerLogo()
                 }
-                else -> {
+            }
+            else -> {
+                Box(modifier = Modifier.fillMaxSize()) {
                     LaunchedEffect(Unit) {
                         onLoginClick()
                     }
@@ -181,7 +187,10 @@ fun DashboardScreen(
                                     },
                                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                                 ) {
-                                    Column(modifier = Modifier.padding(16.dp)) {
+                                    Column(
+                                        modifier = Modifier.padding(16.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
                                         Text(
                                             "Game in ${game.groupName}",
                                             style = MaterialTheme.typography.titleMedium,
