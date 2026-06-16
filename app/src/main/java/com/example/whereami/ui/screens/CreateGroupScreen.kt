@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
+import androidx.compose.animation.Crossfade
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -77,41 +78,54 @@ fun CreateGroupScreen(
                 )
             }
 
-            if (uiState.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-            }
-
-            LazyColumn(
+            Crossfade(
+                targetState = when {
+                    uiState.isLoading -> "loading"
+                    uiState.friends.isEmpty() -> "empty"
+                    else -> "content"
+                },
+                label = "CreateGroupScreenState",
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-            ) {
-                if (!uiState.isLoading && uiState.friends.isEmpty()) {
-                    item {
-                        Text(
-                            text = "You don't have any friends to add yet!",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 16.dp)
-                        )
+            ) { state ->
+                when (state) {
+                    "loading" -> {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator()
+                        }
                     }
-                }
-                items(uiState.friends) { friend ->
-                    val isSelected = uiState.selectedFriendIds.contains(friend.id)
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { viewModel.toggleFriendSelection(friend.id) }
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = isSelected,
-                            onCheckedChange = { viewModel.toggleFriendSelection(friend.id) }
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Column {
-                            Text(friend.username, style = MaterialTheme.typography.bodyLarge)
-                            Text(friend.email, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    "empty" -> {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(
+                                text = "You don't have any friends to add yet!",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    "content" -> {
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            items(items = uiState.friends, key = { it.id }) { friend ->
+                                val isSelected = uiState.selectedFriendIds.contains(friend.id)
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .animateItem()
+                                        .clickable { viewModel.toggleFriendSelection(friend.id) }
+                                        .padding(vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Checkbox(
+                                        checked = isSelected,
+                                        onCheckedChange = { viewModel.toggleFriendSelection(friend.id) }
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Column {
+                                        Text(friend.username, style = MaterialTheme.typography.bodyLarge)
+                                        Text(friend.email, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                }
+                            }
                         }
                     }
                 }

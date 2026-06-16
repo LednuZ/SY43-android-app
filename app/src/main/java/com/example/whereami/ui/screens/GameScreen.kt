@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
+import androidx.compose.animation.Crossfade
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,15 +57,19 @@ fun GameScreen(
             )
         }
     ) { paddingValues ->
-        if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        } else {
+        Crossfade(
+            targetState = if (uiState.isLoading) "loading" else "content",
+            label = "GameScreenState",
+            modifier = Modifier.fillMaxSize().padding(paddingValues)
+        ) { state ->
+            if (state == "loading") {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues)
                     .padding(16.dp)
             ) {
                 if (uiState.game != null) {
@@ -106,11 +111,12 @@ fun GameScreen(
                 if (uiState.currentRounds.isEmpty()) {
                     item { Text("No active rounds") }
                 } else {
-                    items(uiState.currentRounds) { round ->
+                    items(items = uiState.currentRounds, key = { "current_${it.id}" }) { round ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp)
+                                .animateItem()
                                 .clickable { onNavigateToRound(gameId, round.id) },
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                         ) {
@@ -136,11 +142,12 @@ fun GameScreen(
                 if (uiState.pastRounds.isEmpty()) {
                     item { Text("No past rounds") }
                 } else {
-                    items(uiState.pastRounds) { round ->
+                    items(items = uiState.pastRounds, key = { "past_${it.id}" }) { round ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp)
+                                .animateItem()
                                 .clickable { onNavigateToRound(gameId, round.id) },
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                         ) {
@@ -161,4 +168,5 @@ fun GameScreen(
             }
         }
     }
+}
 }

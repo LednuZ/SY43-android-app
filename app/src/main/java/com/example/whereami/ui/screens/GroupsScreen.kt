@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
+import androidx.compose.animation.Crossfade
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,39 +55,50 @@ fun GroupsScreen(
             }
         }
     ) { paddingValues ->
-        Column(
+        Crossfade(
+            targetState = when {
+                uiState.isLoading -> "loading"
+                uiState.error != null -> "error"
+                uiState.groups.isEmpty() -> "empty"
+                else -> "content"
+            },
+            label = "GroupsScreenState",
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(16.dp)
-        ) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-            }
-
-            if (uiState.error != null) {
-                Text(
-                    text = uiState.error!!,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-            }
-
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                if (!uiState.isLoading && uiState.groups.isEmpty()) {
-                    item {
+        ) { state ->
+            when (state) {
+                "loading" -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
+                "error" -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = "You are not in any groups yet. Create one!",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 16.dp)
+                            text = uiState.error!!,
+                            color = MaterialTheme.colorScheme.error
                         )
                     }
-                } else {
-                    items(uiState.groups) { group ->
-                        GroupRow(
-                            group = group,
-                            onClick = { onGroupClick(group.id) }
+                }
+                "empty" -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = "You are not in any groups yet. Create one!",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                    }
+                }
+                "content" -> {
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        items(items = uiState.groups, key = { it.id }) { group ->
+                            GroupRow(
+                                group = group,
+                                onClick = { onGroupClick(group.id) },
+                                modifier = Modifier.animateItem()
+                            )
+                        }
                     }
                 }
             }
@@ -95,12 +107,12 @@ fun GroupsScreen(
 }
 
 @Composable
-fun GroupRow(group: Group, onClick: () -> Unit) {
+fun GroupRow(group: Group, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
-            .clickable { onClick() },
+            .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Row(

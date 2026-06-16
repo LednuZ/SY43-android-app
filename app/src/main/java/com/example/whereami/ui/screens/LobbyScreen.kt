@@ -11,6 +11,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import com.example.whereami.ui.components.AnimatedDialog
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.Crossfade
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,107 +54,119 @@ fun LobbyScreen(
             )
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState())
-        ) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-            } else if (uiState.error != null) {
-                Text(
-                    text = uiState.error!!,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
-            } else if (uiState.group != null) {
-                if (uiState.activeGame != null) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text("Active Game Found!", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("Round: ${uiState.activeGame!!.currentRoundIndex + 1} / ${uiState.activeGame!!.settings.nbRound}", color = MaterialTheme.colorScheme.onPrimaryContainer)
-
-                            Button(
-                                onClick = {
-                                    onNavigateToGame(uiState.activeGame!!.id)
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 16.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                            ) {
-                                Text("View Current Game")
-                            }
-                        }
-                    }
-                } else {
-                    Button(
-                        onClick = onCreateGameClick,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 16.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                    ) {
-                        Text("Create New Game")
+        Crossfade(
+            targetState = when {
+                uiState.isLoading -> "loading"
+                uiState.error != null -> "error"
+                uiState.group != null -> "content"
+                else -> "empty"
+            },
+            label = "LobbyScreenState",
+            modifier = Modifier.fillMaxSize().padding(paddingValues)
+        ) { state ->
+            when (state) {
+                "loading" -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
                     }
                 }
-
-                OutlinedButton(
-                    onClick = { onNavigateToPastGames(groupId) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                ) {
-                    Text("View Past Games")
-                }
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Members", style = MaterialTheme.typography.titleLarge)
-                    IconButton(onClick = { viewModel.showAddMemberDialog() }) {
-                        Icon(Icons.Filled.Add, contentDescription = "Add Member")
+                "error" -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = uiState.error!!,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(16.dp)
+                        )
                     }
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                var membersExpanded by remember { mutableStateOf(false) }
-                val membersToShow = if (membersExpanded) uiState.members else uiState.members.take(3)
-
-
-                Column(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                "content" -> {
                     Column(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
+                            .verticalScroll(rememberScrollState())
                     ) {
-                        membersToShow.forEach { user ->
+                        if (uiState.activeGame != null) {
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 4.dp),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                                    .padding(vertical = 8.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                             ) {
                                 Column(modifier = Modifier.padding(16.dp)) {
-                                    val displayName = user.username + (if (user.id == uiState.currentUserId) " (Me)" else "")
-                                    Text(text = displayName, style = MaterialTheme.typography.bodyLarge)
+                                    Text("Active Game Found!", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text("Round: ${uiState.activeGame!!.currentRoundIndex + 1} / ${uiState.activeGame!!.settings.nbRound}", color = MaterialTheme.colorScheme.onPrimaryContainer)
+
+                                    Button(
+                                        onClick = {
+                                            onNavigateToGame(uiState.activeGame!!.id)
+                                        },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 16.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                                    ) {
+                                        Text("View Current Game")
+                                    }
+                                }
+                            }
+                        } else {
+                            Button(
+                                onClick = onCreateGameClick,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 16.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                            ) {
+                                Text("Create New Game")
+                            }
+                        }
+
+                        OutlinedButton(
+                            onClick = { onNavigateToPastGames(groupId) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                        ) {
+                            Text("View Past Games")
+                        }
+
+                        Spacer(modifier = Modifier.height(32.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("Members", style = MaterialTheme.typography.titleLarge)
+                            IconButton(onClick = { viewModel.showAddMemberDialog() }) {
+                                Icon(Icons.Filled.Add, contentDescription = "Add Member")
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        var membersExpanded by remember { mutableStateOf(false) }
+                        val membersToShow = if (membersExpanded) uiState.members else uiState.members.take(3)
+
+                        Column(
+                            modifier = Modifier.fillMaxWidth().animateContentSize()
+                        ) {
+                            membersToShow.forEach { user ->
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                                ) {
+                                    Column(modifier = Modifier.padding(16.dp)) {
+                                        val displayName = user.username + (if (user.id == uiState.currentUserId) " (Me)" else "")
+                                        Text(text = displayName, style = MaterialTheme.typography.bodyLarge)
+                                    }
                                 }
                             }
                         }
-                    }
 
                     if (uiState.members.size > 3) {
                         TextButton(
@@ -164,7 +178,9 @@ fun LobbyScreen(
                     }
                 }
             }
+            "empty" -> {}
         }
+    }
         
         if (uiState.isAddMemberDialogVisible) {
             AnimatedDialog(

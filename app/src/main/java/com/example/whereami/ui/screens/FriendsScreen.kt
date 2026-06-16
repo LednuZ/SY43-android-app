@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
+import androidx.compose.animation.Crossfade
 import androidx.compose.material3.CircularProgressIndicator
 import com.example.whereami.ui.components.AnimatedDialog
 import androidx.compose.runtime.*
@@ -84,84 +85,101 @@ fun FriendsScreen(
             
             Spacer(modifier = Modifier.height(16.dp))
 
-            if (uiState.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-            }
-
-            if (uiState.error != null) {
-                Text(
-                    text = uiState.error!!,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-            }
-
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                if (searchQuery.isNotBlank() && uiState.searchResults.isNotEmpty()) {
-                    item {
-                        Text("Search Results", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(vertical = 8.dp))
+            Crossfade(
+                targetState = when {
+                    uiState.isLoading -> "loading"
+                    uiState.error != null -> "error"
+                    else -> "content"
+                },
+                label = "FriendsScreenState",
+                modifier = Modifier.weight(1f).fillMaxWidth()
+            ) { state ->
+                when (state) {
+                    "loading" -> {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator()
+                        }
                     }
-                    items(uiState.searchResults) { user ->
-                        UserRow(
-                            user = user,
-                            actionIcon = Icons.Default.PersonAdd,
-                            onActionClick = { viewModel.sendFriendRequest(user.id) }
-                        )
+                    "error" -> {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(
+                                text = uiState.error!!,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                    "content" -> {
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            if (searchQuery.isNotBlank() && uiState.searchResults.isNotEmpty()) {
+                                item {
+                                    Text("Search Results", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(vertical = 8.dp))
+                                }
+                                items(items = uiState.searchResults, key = { "search_${it.id}" }) { user ->
+                                    UserRow(
+                                        user = user,
+                                        actionIcon = Icons.Default.PersonAdd,
+                                        onActionClick = { viewModel.sendFriendRequest(user.id) },
+                                        modifier = Modifier.animateItem()
+                                    )
+                                }
+                            }
+
+                            item {
+                                Text("My Friends", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(vertical = 8.dp))
+                            }
+                            if (uiState.friends.isEmpty()) {
+                                item {
+                                    Text("No friends yet. Search to add some!", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            } else {
+                                items(items = uiState.friends, key = { "friend_${it.id}" }) { user ->
+                                    UserRow(
+                                        user = user,
+                                        actionIcon = Icons.Default.Delete,
+                                        onActionClick = { friendToDelete = user },
+                                        modifier = Modifier.animateItem()
+                                    )
+                                }
+                            }
+
+                            item {
+                                Text("Pending Requests", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(vertical = 8.dp))
+                            }
+                            if (uiState.pendingRequests.isEmpty()) {
+                                item {
+                                    Text("No pending request.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            } else {
+                                items(items = uiState.pendingRequests, key = { "pending_${it.id}" }) { user ->
+                                    UserRow(
+                                        user = user,
+                                        actionIcon = Icons.Default.Check,
+                                        onActionClick = { viewModel.acceptFriendRequest(user.id) },
+                                        modifier = Modifier.animateItem()
+                                    )
+                                }
+                            }
+
+                            item {
+                                Text("Sent Requests", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(vertical = 8.dp))
+                            }
+                            if (uiState.sentRequests.isEmpty()) {
+                                item {
+                                    Text("No request sent.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            } else {
+                                items(items = uiState.sentRequests, key = { "sent_${it.id}" }) { user ->
+                                    UserRow(
+                                        user = user,
+                                        actionIcon = Icons.Default.AccessTime,
+                                        onActionClick = { /* maybe cancel request later */ },
+                                        modifier = Modifier.animateItem()
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
-
-                item {
-                    Text("My Friends", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(vertical = 8.dp))
-                }
-                if (uiState.friends.isEmpty()) {
-                    item {
-                        Text("No friends yet. Search to add some!", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                } else {
-                    items(uiState.friends) { user ->
-                        UserRow(
-                            user = user,
-                            actionIcon = Icons.Default.Delete,
-                            onActionClick = { friendToDelete = user }
-                        )
-                    }
-                }
-
-                item {
-                    Text("Pending Requests", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(vertical = 8.dp))
-                }
-                if (uiState.pendingRequests.isEmpty()) {
-                    item {
-                        Text("No pending request.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                } else {
-                    items(uiState.pendingRequests) { user ->
-                        UserRow(
-                            user = user,
-                            actionIcon = Icons.Default.Check,
-                            onActionClick = { viewModel.acceptFriendRequest(user.id) }
-                        )
-                    }
-                }
-
-
-                item {
-                    Text("Sent Requests", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(vertical = 8.dp))
-                }
-                if (uiState.sentRequests.isEmpty()) {
-                    item {
-                        Text("No request sent.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                } else {
-                    items(uiState.sentRequests) { user ->
-                        UserRow(
-                            user = user,
-                            actionIcon = Icons.Default.AccessTime,
-                            onActionClick = { /* maybe cancel request later */ }
-                        )
-                    }
-                }
-
             }
         }
 
@@ -194,10 +212,11 @@ fun FriendsScreen(
 fun UserRow(
     user: User,
     actionIcon: androidx.compose.ui.graphics.vector.ImageVector?,
-    onActionClick: () -> Unit
+    onActionClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
