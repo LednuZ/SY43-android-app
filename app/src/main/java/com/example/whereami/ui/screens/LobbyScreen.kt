@@ -147,7 +147,8 @@ fun LobbyScreen(
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                             ) {
                                 Column(modifier = Modifier.padding(16.dp)) {
-                                    Text(text = user.username, style = MaterialTheme.typography.bodyLarge)
+                                    val displayName = user.username + (if (user.id == uiState.currentUserId) " (Me)" else "")
+                                    Text(text = displayName, style = MaterialTheme.typography.bodyLarge)
                                 }
                             }
                         }
