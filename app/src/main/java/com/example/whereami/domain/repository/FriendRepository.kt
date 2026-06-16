@@ -6,4 +6,6 @@ interface FriendRepository {
     suspend fun sendFriendRequest(from: String, to: String): Result<Unit>
     suspend fun acceptFriendRequest(from: String, to: String): Result<Unit>
     suspend fun getFriends(userId: String): Result<Set<String>>
+    suspend fun getPendingFriendRequests(userId: String): Result<Set<String>>
+    suspend fun getSentFriendRequests(userId: String): Result<Set<String>>
 }

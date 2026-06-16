@@ -1,6 +1,6 @@
 package com.example.whereami.domain.model
 
-import com.google.firebase.Timestamp
+import kotlin.time.Instant
 
 data class Reaction(
     val id: String,
@@ -8,5 +8,5 @@ data class Reaction(
     val pictureId: String? = null,
     val messageId: String? = null,
     val emoji: String,
-    val createdAt: Timestamp
+    val createdAt: Instant
 )

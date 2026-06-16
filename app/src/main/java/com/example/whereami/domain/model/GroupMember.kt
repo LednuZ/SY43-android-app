@@ -1,10 +1,11 @@
 package com.example.whereami.domain.model
 
-import com.google.firebase.Timestamp
+import kotlin.time.Instant
 
 data class GroupMember(
     val userId: String,
     val groupId: String,
-    val joinedAt: Timestamp,
+    val joinedAt: Instant,
     val notificationsEnabled: Boolean,
+    val role: String
 )

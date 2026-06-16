@@ -1,6 +1,7 @@
 package com.example.whereami.domain.repository
 
 import com.example.whereami.domain.model.*
+import com.example.whereami.domain.usecase.FriendsData
 
 interface GroupRepository {
     suspend fun getGroup(groupId: String): Result<Group?>
