@@ -11,6 +11,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -137,7 +138,8 @@ fun WhereAmI(
                     )
                 }
             }
-        }
+        },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { paddingValues ->
         AppNavHost(navController = navController, modifier = Modifier.padding(paddingValues))
     }
