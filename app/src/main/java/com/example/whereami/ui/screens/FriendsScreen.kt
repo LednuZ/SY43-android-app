@@ -22,6 +22,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.whereami.domain.model.User
 import com.example.whereami.navigation.NavigationDestination
 import com.example.whereami.ui.viewmodel.FriendsViewModel
+import com.example.whereami.ui.components.UserAvatar
 import io.github.jan.supabase.auth.user.UserInfo
 
 object FriendsDestination : NavigationDestination {
@@ -227,6 +228,12 @@ fun UserRow(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            UserAvatar(
+                profileUrl = user.profilePicture,
+                username = user.username,
+                modifier = Modifier.size(40.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = user.username, style = MaterialTheme.typography.bodyLarge)
             }

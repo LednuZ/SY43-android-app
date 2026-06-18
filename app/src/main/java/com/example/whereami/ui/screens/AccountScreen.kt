@@ -18,8 +18,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import kotlin.io.readBytes
 import com.example.whereami.navigation.NavigationDestination
 import com.example.whereami.ui.viewmodel.AccountViewModel
+import com.example.whereami.ui.components.UserAvatar
 import io.github.jan.supabase.auth.user.UserInfo
 import com.example.whereami.data.remote.SupabaseProvider
 import io.github.jan.supabase.auth.auth
@@ -49,6 +58,18 @@ fun AccountScreen(
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    val avatarPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            val bytes = context.contentResolver.openInputStream(it)?.readBytes()
+            if (bytes != null) {
+                viewModel.uploadProfilePicture(bytes)
+            }
+        }
+    }
 
     LaunchedEffect(currentUser.id) {
         viewModel.initialize(currentUser.id)
@@ -114,6 +135,38 @@ fun AccountScreen(
                     ) {
                         Spacer(modifier = Modifier.height(16.dp))
                         
+                        Box(
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clip(CircleShape)
+                                .clickable {
+                                    avatarPickerLauncher.launch("image/*")
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            UserAvatar(
+                                profileUrl = uiState.currentUserData?.profilePicture,
+                                username = uiState.currentUserData?.username ?: "User",
+                                modifier = Modifier.fillMaxSize()
+                            )
+                            
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color.Black.copy(alpha = 0.4f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    "Edit",
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
                         Text(
                             "Update Profile",
                             style = MaterialTheme.typography.titleLarge,
@@ -172,9 +225,7 @@ fun AccountScreen(
                         Spacer(modifier = Modifier.height(16.dp))
                         
                         Button(
-                            onClick = { 
-                                viewModel.updateProfile(newUsername, newFirstName, newLastName, newPhoneNumber)
-                            },
+                            onClick = { viewModel.updateProfile(newUsername, newFirstName, newLastName, newPhoneNumber) },
                             modifier = Modifier.fillMaxWidth(),
                             enabled = !uiState.isSaving && newUsername.isNotBlank() && isProfileChanged
                         ) {

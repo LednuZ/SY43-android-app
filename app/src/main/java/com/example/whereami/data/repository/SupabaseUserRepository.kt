@@ -5,6 +5,7 @@ import com.example.whereami.domain.model.User
 import com.example.whereami.domain.repository.UserRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.storage.storage
 import com.example.whereami.data.dto.GameDto
 import kotlin.time.Instant
 
@@ -29,10 +30,36 @@ class SupabaseUserRepository(private val client: SupabaseClient) : UserRepositor
                     set("first_name", user.firstName)
                     set("last_name", user.lastName)
                     set("phone_number", user.phoneNumber)
+                    set("profile_picture", user.profilePicture)
                 }
             ) {
                 filter { eq("id", user.id) }
             }
+        }
+    }
+
+    override suspend fun uploadProfilePicture(userId: String, imageBytes: ByteArray): Result<String> {
+        return runCatching {
+            val fileName = "avatars/$userId.jpg"
+            val bucket = client.storage.from("pictures")
+            
+            try {
+                bucket.delete(fileName)
+            } catch (e: Exception) {
+                // Ignore if it doesn't exist
+            }
+            
+            bucket.upload(fileName, imageBytes)
+            val publicUrl = bucket.publicUrl(fileName)
+            
+            client.from("users").update(
+                {
+                    set("profile_picture", publicUrl)
+                }
+            ) {
+                filter { eq("id", userId) }
+            }
+            publicUrl
         }
     }
 

@@ -4,8 +4,9 @@ import android.annotation.SuppressLint
 import com.google.android.gms.location.LocationServices
 import com.example.whereami.util.toAppError
 import com.example.whereami.util.formatTimeLeft
-
+import com.google.android.gms.location.Priority
 import android.Manifest
+import android.location.Location
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.LocationManager
@@ -18,7 +19,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material    .icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
@@ -120,7 +121,7 @@ fun RoundScreen(
                 
                 if (hasPermission) {
                     val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-                    fusedLocationClient.getCurrentLocation(com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY, null).addOnSuccessListener { loc: android.location.Location? ->
+                    fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null).addOnSuccessListener { loc: Location? ->
                         if (loc != null) {
                             viewModel.uploadPicture(LatLng(loc.latitude, loc.longitude), bytes)
                         } else {
@@ -243,8 +244,10 @@ fun RoundScreen(
                         RoundSubScreen.SCORES -> {
                         if (uiState.round?.status == com.example.whereami.domain.model.RoundStatus.FINISHED) {
                             val playerScores = uiState.round?.scoreSheets?.map { score ->
-                                val username = uiState.playerBoxes.find { it.user.id == score.playerId }?.user?.username ?: "Unknown"
-                                com.example.whereami.ui.components.PlayerScoreDisplay(username, score.score)
+                                val userBox = uiState.playerBoxes.find { it.user.id == score.playerId }
+                                val username = userBox?.user?.username ?: "Unknown"
+                                val avatarUrl = userBox?.user?.profilePicture
+                                com.example.whereami.ui.components.PlayerScoreDisplay(username, score.score, avatarUrl)
                             } ?: emptyList()
                             Column(
                                 modifier = Modifier.fillMaxSize().padding(16.dp),

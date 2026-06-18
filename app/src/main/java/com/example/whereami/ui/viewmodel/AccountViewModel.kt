@@ -93,6 +93,28 @@ class AccountViewModel(
         }
     }
 
+    fun uploadProfilePicture(imageBytes: ByteArray) {
+        val userId = currentUserId ?: return
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isSaving = true, error = null, successMessage = null)
+            val result = userRepository.uploadProfilePicture(userId, imageBytes)
+            if (result.isSuccess) {
+                val publicUrl = result.getOrThrow()
+                val user = _uiState.value.currentUserData
+                _uiState.value = _uiState.value.copy(
+                    isSaving = false,
+                    currentUserData = user?.copy(profilePicture = publicUrl),
+                    successMessage = "Profile picture updated successfully!"
+                )
+            } else {
+                _uiState.value = _uiState.value.copy(
+                    isSaving = false,
+                    error = result.exceptionOrNull()?.toAppError() ?: AppError.Unknown("Failed to upload profile picture")
+                )
+            }
+        }
+    }
+
     fun deleteAccount() {
         val userId = currentUserId ?: return
         viewModelScope.launch {

@@ -8,4 +8,5 @@ interface UserRepository {
     suspend fun searchUsers(query: String): Result<List<User>>
     suspend fun getUsers(userIds: List<String>): Result<List<User>>
     suspend fun deleteUser(userId: String): Result<Unit>
+    suspend fun uploadProfilePicture(userId: String, imageBytes: ByteArray): Result<String>
 }

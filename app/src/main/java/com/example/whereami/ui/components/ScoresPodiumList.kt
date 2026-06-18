@@ -1,5 +1,7 @@
 package com.example.whereami.ui.components
 
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -7,19 +9,19 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.animation.core.*
+
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 data class PlayerScoreDisplay(
     val username: String,
-    val score: Int
+    val score: Int,
+    val avatarUrl: String? = null
 )
 
 @Composable
@@ -28,7 +30,12 @@ fun ScoresPodiumList(
     modifier: Modifier = Modifier
 ) {
     val sortedScores = playerScores.sortedByDescending { it.score }
-    
+    var startAnimation by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        startAnimation = true
+    }
+
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -43,7 +50,7 @@ fun ScoresPodiumList(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
+                .height(280.dp)
                 .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.Bottom
@@ -54,6 +61,7 @@ fun ScoresPodiumList(
                     rank = 2,
                     height = 120,
                     color = Color(0xFFC0C0C0),
+                    startAnimation = startAnimation,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -64,6 +72,7 @@ fun ScoresPodiumList(
                     rank = 1,
                     height = 160,
                     color = Color(0xFFFFD700),
+                    startAnimation = startAnimation,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -74,6 +83,7 @@ fun ScoresPodiumList(
                     rank = 3,
                     height = 90,
                     color = Color(0xFFCD7F32),
+                    startAnimation = startAnimation,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -108,6 +118,12 @@ fun ScoresPodiumList(
                                     modifier = Modifier.width(32.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
+                                UserAvatar(
+                                    profileUrl = player.avatarUrl,
+                                    username = player.username,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
                                 Text(text = player.username)
                             }
                             Text(text = "${player.score} pts", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
@@ -125,20 +141,16 @@ private fun PodiumColumn(
     rank: Int,
     height: Int,
     color: Color,
+    startAnimation: Boolean,
     modifier: Modifier = Modifier
 ) {
-    var startAnimation by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        startAnimation = true
-    }
-
     val animatedHeight by animateDpAsState(
         targetValue = if (startAnimation) height.dp else 0.dp,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessVeryLow
+        animationSpec = tween(
+            durationMillis = 1000,
+            delayMillis = (rank - 1) * 200
         ),
-        label = "podium_height"
+        label = "podiumHeight"
     )
 
     Column(
@@ -146,6 +158,12 @@ private fun PodiumColumn(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Bottom
     ) {
+        UserAvatar(
+            profileUrl = player.avatarUrl,
+            username = player.username,
+            modifier = Modifier.size(48.dp)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = player.username,
             maxLines = 1,
@@ -167,12 +185,14 @@ private fun PodiumColumn(
                 .background(color),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = "$rank",
-                fontSize = 32.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = Color.White
-            )
+            if (animatedHeight > 35.dp) {
+                Text(
+                    text = "$rank",
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.White
+                )
+            }
         }
     }
 }

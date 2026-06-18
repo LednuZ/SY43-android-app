@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.whereami.navigation.NavigationDestination
 import com.example.whereami.ui.viewmodel.LobbyViewModel
+import com.example.whereami.ui.components.UserAvatar
 
 object LobbyDestination : NavigationDestination {
     override val route = "lobby/{groupId}"
@@ -160,7 +161,18 @@ fun LobbyScreen(
                                         .padding(vertical = 4.dp),
                                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                                 ) {
-                                    Column(modifier = Modifier.padding(16.dp)) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        UserAvatar(
+                                            profileUrl = user.profilePicture,
+                                            username = user.username,
+                                            modifier = Modifier.size(40.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(12.dp))
                                         val displayName = user.username + (if (user.id == uiState.currentUserId) " (Me)" else "")
                                         Text(text = displayName, style = MaterialTheme.typography.bodyLarge)
                                     }
@@ -201,6 +213,12 @@ fun LobbyScreen(
                                         .padding(vertical = 8.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
+                                    UserAvatar(
+                                        profileUrl = friend.profilePicture,
+                                        username = friend.username,
+                                        modifier = Modifier.size(32.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
                                     Column {
                                         Text(friend.username, style = MaterialTheme.typography.bodyLarge)
                                     }
