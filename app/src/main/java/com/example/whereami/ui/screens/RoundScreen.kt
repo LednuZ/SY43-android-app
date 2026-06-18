@@ -22,6 +22,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
+import androidx.compose.animation.Crossfade
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -192,47 +193,54 @@ fun RoundScreen(
         }
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            } else {
-                when (currentSubScreen) {
-                    RoundSubScreen.BOXES -> {
-                        RoundPlayerStatusSubScreen(
-                            uiState = uiState,
-                            onBoxSelected = { box ->
-                                selectedBox = box
-                                currentSubScreen = RoundSubScreen.PICTURE_VIEW
-                            },
-                            imagePickerLauncher = imagePickerLauncher,
-                            permissionLauncher = permissionLauncher
-                        )
+            Crossfade(
+                targetState = if (uiState.isLoading) "loading" else "content",
+                label = "RoundScreenState",
+                modifier = Modifier.fillMaxSize()
+            ) { state ->
+                if (state == "loading") {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
                     }
-                    RoundSubScreen.PICTURE_VIEW -> {
-                        if (selectedBox != null) {
-                            RoundPictureSubScreen(
+                } else {
+                    when (currentSubScreen) {
+                        RoundSubScreen.BOXES -> {
+                            RoundPlayerStatusSubScreen(
                                 uiState = uiState,
-                                selectedBox = selectedBox!!,
-                                onNavigateToMap = { currentSubScreen = RoundSubScreen.MAP_VIEW }
+                                onBoxSelected = { box ->
+                                    selectedBox = box
+                                    currentSubScreen = RoundSubScreen.PICTURE_VIEW
+                                },
+                                imagePickerLauncher = imagePickerLauncher,
+                                permissionLauncher = permissionLauncher
                             )
                         }
-                    }
-                    RoundSubScreen.MAP_VIEW -> {
-                        if (selectedBox != null) {
-                            RoundMapSubScreen(
-                                uiState = uiState,
-                                selectedBox = selectedBox!!,
-                                currentPinLocation = currentPinLocation,
-                                onPinLocationChanged = { currentPinLocation = it },
-                                onSubmitGuess = {
-                                    currentPinLocation?.let { pin ->
-                                        viewModel.submitGuess(selectedBox!!.picture!!.id, pin)
-                                        currentSubScreen = RoundSubScreen.BOXES
+                        RoundSubScreen.PICTURE_VIEW -> {
+                            if (selectedBox != null) {
+                                RoundPictureSubScreen(
+                                    uiState = uiState,
+                                    selectedBox = selectedBox!!,
+                                    onNavigateToMap = { currentSubScreen = RoundSubScreen.MAP_VIEW }
+                                )
+                            }
+                        }
+                        RoundSubScreen.MAP_VIEW -> {
+                            if (selectedBox != null) {
+                                RoundMapSubScreen(
+                                    uiState = uiState,
+                                    selectedBox = selectedBox!!,
+                                    currentPinLocation = currentPinLocation,
+                                    onPinLocationChanged = { currentPinLocation = it },
+                                    onSubmitGuess = {
+                                        currentPinLocation?.let { pin ->
+                                            viewModel.submitGuess(selectedBox!!.picture!!.id, pin)
+                                            currentSubScreen = RoundSubScreen.BOXES
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
-                    }
-                    RoundSubScreen.SCORES -> {
+                        RoundSubScreen.SCORES -> {
                         if (uiState.round?.status == com.example.whereami.domain.model.RoundStatus.FINISHED) {
                             val playerScores = uiState.round?.scoreSheets?.map { score ->
                                 val username = uiState.playerBoxes.find { it.user.id == score.playerId }?.user?.username ?: "Unknown"
@@ -275,4 +283,5 @@ fun RoundScreen(
             }
         }
     }
+}
 }

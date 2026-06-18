@@ -6,7 +6,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.animation.core.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,7 +53,7 @@ fun ScoresPodiumList(
                     player = sortedScores[1],
                     rank = 2,
                     height = 120,
-                    color = Color(0xFFC0C0C0), // Silver
+                    color = Color(0xFFC0C0C0),
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -62,7 +63,7 @@ fun ScoresPodiumList(
                     player = sortedScores[0],
                     rank = 1,
                     height = 160,
-                    color = Color(0xFFFFD700), // Gold
+                    color = Color(0xFFFFD700),
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -72,7 +73,7 @@ fun ScoresPodiumList(
                     player = sortedScores[2],
                     rank = 3,
                     height = 90,
-                    color = Color(0xFFCD7F32), // Bronze
+                    color = Color(0xFFCD7F32),
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -88,9 +89,9 @@ fun ScoresPodiumList(
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                itemsIndexed(remainingPlayers) { index, player ->
+                itemsIndexed(items = remainingPlayers, key = { _, player -> player.username }) { index, player ->
                     Card(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().animateItem(),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                     ) {
                         Row(
@@ -126,6 +127,20 @@ private fun PodiumColumn(
     color: Color,
     modifier: Modifier = Modifier
 ) {
+    var startAnimation by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        startAnimation = true
+    }
+
+    val animatedHeight by animateDpAsState(
+        targetValue = if (startAnimation) height.dp else 0.dp,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessVeryLow
+        ),
+        label = "podium_height"
+    )
+
     Column(
         modifier = modifier.padding(horizontal = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -147,7 +162,7 @@ private fun PodiumColumn(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(height.dp)
+                .height(animatedHeight)
                 .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
                 .background(color),
             contentAlignment = Alignment.Center

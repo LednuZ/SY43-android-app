@@ -32,7 +32,8 @@ data class LobbyUiState(
     val error: String? = null,
     val isAddMemberDialogVisible: Boolean = false,
     val availableFriendsToAdd: List<User> = emptyList(),
-    val isAddingMember: Boolean = false
+    val isAddingMember: Boolean = false,
+    val currentUserId: String? = null
 )
 
 class LobbyViewModel(
@@ -53,7 +54,8 @@ class LobbyViewModel(
 
     private fun fetchGroupDetails(groupId: String) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            val currentUserId = SupabaseProvider.client.auth.currentUserOrNull()?.id
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null, currentUserId = currentUserId)
             val result = getGroupDetailsUseCase(groupId)
             
             if (result.isSuccess) {

@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
+import androidx.compose.animation.Crossfade
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,40 +56,62 @@ fun PastGamesScreen(
             )
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            } else if (uiState.error != null) {
-                Text(
-                    text = uiState.error!!,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.align(Alignment.Center).padding(16.dp)
-                )
-            } else if (uiState.pastGames.isEmpty()) {
-                Text(
-                    text = "You haven't finished any games yet.",
-                    color = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(uiState.pastGames) { game ->
-                        Card(
-                            modifier = Modifier.fillMaxWidth().clickable { onNavigateToGame(game.id) },
-                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text("Game ID: ${game.id.take(8)}", style = MaterialTheme.typography.titleMedium)
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text("Rounds: ${game.settings.nbRound}", style = MaterialTheme.typography.bodyMedium)
-                                
-                                val userScore = game.scoreSheets.find { it.playerId == user?.id }?.score ?: 0
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text("Your Score: $userScore", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+        Crossfade(
+            targetState = when {
+                uiState.isLoading -> "loading"
+                uiState.error != null -> "error"
+                uiState.pastGames.isEmpty() -> "empty"
+                else -> "content"
+            },
+            label = "PastGamesScreenState",
+            modifier = Modifier.fillMaxSize().padding(paddingValues)
+        ) { state ->
+            when (state) {
+                "loading" -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
+                "error" -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = uiState.error!!,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                }
+                "empty" -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = "You haven't finished any games yet.",
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                }
+                "content" -> {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(items = uiState.pastGames, key = { it.id }) { game ->
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .animateItem()
+                                    .clickable { onNavigateToGame(game.id) },
+                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text("Game ID: ${game.id.take(8)}", style = MaterialTheme.typography.titleMedium)
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text("Rounds: ${game.settings.nbRound}", style = MaterialTheme.typography.bodyMedium)
+                                    
+                                    val userScore = game.scoreSheets.find { it.playerId == user?.id }?.score ?: 0
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text("Your Score: $userScore", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                                }
                             }
                         }
                     }

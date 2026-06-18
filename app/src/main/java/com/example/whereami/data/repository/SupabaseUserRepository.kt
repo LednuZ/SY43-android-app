@@ -44,7 +44,9 @@ class SupabaseUserRepository(private val client: SupabaseClient) : UserRepositor
                         ilike("username", "%$query%")
                     }
                 }
-            }.decodeList<UserDto>().map { it.toDomain() }
+            }.decodeList<UserDto>()
+                .map { it.toDomain() }
+                .filter { !it.username.startsWith("Deleted User ") }
         }
     }
 
