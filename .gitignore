@@ -42,3 +42,9 @@ shelf/
 .DS_Store
 
 google-services.json
+Documents/report.aux
+Documents/report.fdb_latexmk
+Documents/report.out
+Documents/report.synctex.gz
+Documents/report.toc
+Documents/report.fls
