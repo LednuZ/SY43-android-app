@@ -108,6 +108,7 @@ class SupabaseGameRepository(private val client: SupabaseClient) : GameRepositor
                     eq("group_id", groupId)
                     eq("status", GameStatus.FINISHED.name)
                 }
+                order("date_begin", order = io.github.jan.supabase.postgrest.query.Order.DESCENDING)
             }.decodeList<GameDto>()
 
             gamesDtos.map { dto ->
