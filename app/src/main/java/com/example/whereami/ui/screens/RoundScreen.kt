@@ -37,6 +37,7 @@ import com.example.whereami.domain.model.util.LatLng
 import com.example.whereami.navigation.NavigationDestination
 import com.example.whereami.ui.viewmodel.RoundViewModel
 import com.example.whereami.domain.model.PlayerBox
+import java.io.File
 import org.osmdroid.config.Configuration
 import org.osmdroid.events.MapEventsReceiver
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
@@ -221,7 +222,34 @@ fun RoundScreen(
                                 RoundPictureSubScreen(
                                     uiState = uiState,
                                     selectedBox = selectedBox!!,
-                                    onNavigateToMap = { currentSubScreen = RoundSubScreen.MAP_VIEW }
+                                    onNavigateToMap = { currentSubScreen = RoundSubScreen.MAP_VIEW },
+                                    onPictureCaptured = { uri ->
+                                        val bytes = try {
+                                            val path = uri.path ?: ""
+                                            if (path.isNotEmpty()) {
+                                                File(path).readBytes()
+                                            } else {
+                                                context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                                            }
+                                        } catch (e: Exception) {
+                                            null
+                                        }
+
+                                        if (bytes != null) {
+                                            val hasPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                                            if (hasPermission) {
+                                                val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+                                                
+                                                fusedLocationClient.lastLocation.addOnSuccessListener { lastLoc ->
+                                                    val locationToUse = lastLoc ?: Location("").apply { latitude = 0.0; longitude = 0.0 }
+                                                    viewModel.uploadPicture(LatLng(locationToUse.latitude, locationToUse.longitude), bytes)
+                                                    currentSubScreen = RoundSubScreen.BOXES
+                                                }
+                                            } else {
+                                                viewModel.showError("Permission GPS requise.")
+                                            }
+                                        }
+                                    }
                                 )
                             }
                         }

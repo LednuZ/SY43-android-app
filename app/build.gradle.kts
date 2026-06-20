@@ -94,5 +94,12 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.osmdroid.android)
     implementation(libs.coil.compose)
+
+    // CameraX
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+
     implementation("com.google.android.gms:play-services-location:21.3.0")
 }

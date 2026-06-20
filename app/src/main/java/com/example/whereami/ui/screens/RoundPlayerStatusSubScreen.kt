@@ -39,11 +39,9 @@ fun RoundPlayerStatusSubScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
                         onClick = {
-                            val hasPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                            if (hasPermission) {
-                                imagePickerLauncher.launch("image/*")
-                            } else {
-                                permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                            val myBox = uiState.playerBoxes.find { it.user.id == uiState.currentUserId }
+                            if (myBox != null) {
+                                onBoxSelected(myBox)
                             }
                         },
                         enabled = !uiState.isUploadingPicture
@@ -51,7 +49,7 @@ fun RoundPlayerStatusSubScreen(
                         if (uiState.isUploadingPicture) {
                             CircularProgressIndicator(modifier = Modifier.size(24.dp))
                         } else {
-                            Text("Upload Picture")
+                            Text("Take / Upload Picture")
                         }
                     }
                 }
@@ -67,7 +65,7 @@ fun RoundPlayerStatusSubScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp)
-                    .clickable(enabled = myBox.hasUploaded) {
+                    .clickable {
                         onBoxSelected(myBox)
                     },
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
