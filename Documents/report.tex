@@ -11,7 +11,6 @@
 \usepackage{xcolor}
 \usepackage{booktabs}
 \usepackage{float}
-\usepackage{caption}
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{tikz}
@@ -187,51 +186,60 @@ The codebase is logically separated into three layers:
 \subsection{UML diagrams}
 
 \subsubsection{Use case diagram}
-The interaction between the client player, the GPS sensor, and the Supabase backend is illustrated below.
+The interaction between the client player, the device sensors, and the Supabase backend is illustrated below.
 \begin{figure}[H]
     \centering
     \begin{tikzpicture}[
-        scale=0.9,
-        actor/.style={draw, circle, minimum size=1cm, fill=gray!20},
-        usecase/.style={draw, ellipse, minimum width=2.5cm, minimum height=1cm, align=center, fill=blue!5},
-        arrow/.style={-}
+        font=\scriptsize,
+        actor/.style={draw, ellipse, minimum width=2.2cm, minimum height=0.62cm, align=center, fill=gray!8, line width=0.8pt},
+        usecase/.style={draw, rectangle, minimum width=3.15cm, minimum height=0.52cm, align=center, fill=white, line width=0.75pt, text depth=0pt},
+        service/.style={draw, ellipse, minimum width=2.45cm, minimum height=0.62cm, align=center, fill=blue!5, line width=0.75pt},
+        storage/.style={draw, cylinder, shape border rotate=90, aspect=0.25, minimum width=1.8cm, minimum height=0.95cm, align=center, fill=cyan!8, line width=0.75pt},
+        link/.style={-{Stealth[length=2mm]}, line width=0.7pt, draw=black!72}
     ]
         % Actors
-        \node (player) [actor] at (-6, 0) {Player};
-        \node (gps) [actor] at (-6, -4) {GPS Sensor};
-        \node (backend) [actor] at (6, -2) {Supabase};
+        \node (player) [actor] at (-4.6, 0.2) {\textbf{Player}};
 
         % System Boundary
-        \draw[gray, thick] (-3.5, 4.5) rectangle (3.5, -7.5);
+        \draw[gray!55, line width=0.8pt, rounded corners=5pt] (-2.35, 4.55) rectangle (2.35, -5.55);
+        \node[fill=white, text=gray!75] at (0, 4.55) {\textbf{WhereAmI Android app}};
 
         % Use Cases
-        \node (uc1) [usecase] at (0, 3.2) {Register / Login};
-        \node (uc2) [usecase] at (0, 1.8) {Manage Groups \\ \& Friends};
-        \node (uc3) [usecase] at (0, 0.4) {Create Game Lobby};
-        \node (uc4) [usecase] at (0, -1.2) {Upload Photo \\ with Location};
-        \node (uc5) [usecase] at (0, -3.0) {Pin Guess on Map};
-        \node (uc6) [usecase] at (0, -4.6) {Calculate Scores};
-        \node (uc7) [usecase] at (0, -6.2) {View Leaderboard};
+        \node (auth) [usecase] at (0, 3.85) {Register / log in};
+        \node (social) [usecase] at (0, 3.05) {Manage friends};
+        \node (groups) [usecase] at (0, 2.25) {Create and manage groups};
+        \node (lobby) [usecase] at (0, 1.45) {Create game lobby};
+        \node (capture) [usecase] at (0, 0.65) {Capture or select photo};
+        \node (geotag) [usecase] at (0, -0.15) {Attach GPS coordinates};
+        \node (upload) [usecase] at (0, -0.95) {Upload geotagged photo};
+        \node (round) [usecase] at (0, -1.75) {View photo};
+        \node (guess) [usecase] at (0, -2.55) {Place guess on map};
+        \node (score) [usecase] at (0, -3.35) {Calculate score};
+        \node (leaderboard) [usecase] at (0, -4.15) {View leaderboard};
+        \node (profile) [usecase] at (0, -4.95) {Update profile and password};
+
+        % External services and device sensors
+        \node (camera) [service] at (4.45, 0.65) {Camera sensor};
+        \node (gps) [service] at (4.45, -0.15) {Device location};
+        \node (map) [service] at (4.45, -2.55) {OpenStreetMap};
+        \node (supabase) [storage] at (4.55, -3.85) {\textbf{Supabase}};
 
         % Player Connections
-        \draw [arrow] (player) -- (uc1);
-        \draw [arrow] (player) -- (uc2);
-        \draw [arrow] (player) -- (uc3);
-        \draw [arrow] (player) -- (uc4);
-        \draw [arrow] (player) -- (uc5);
-        \draw [arrow] (player) -- (uc7);
+        \foreach \uc in {auth,social,groups,lobby,capture,round,guess,leaderboard,profile}
+            \draw [link] (player) -- (\uc.west);
 
-        % Sensor Connection
-        \draw [arrow] (gps) -- (uc4);
+        % Device Sensor Connections
+        \draw [link] (capture.east) -- (camera);
+        \draw [link] (geotag.east) -- (gps);
+        \draw [link] (guess.east) -- (map);
+        \draw [link] (capture) -- (upload);
+        \draw [link] (geotag) -- (upload);
+        \draw [link] (guess) -- (score);
+        \draw [link] (score) -- (leaderboard);
 
         % Backend Connections
-        \draw [arrow] (uc1) -- (backend);
-        \draw [arrow] (uc2) -- (backend);
-        \draw [arrow] (uc3) -- (backend);
-        \draw [arrow] (uc4) -- (backend);
-        \draw [arrow] (uc5) -- (backend);
-        \draw [arrow] (uc6) -- (backend);
-        \draw [arrow] (uc7) -- (backend);
+        \foreach \uc in {auth,social,groups,lobby,upload,round,guess,score,leaderboard,profile}
+            \draw [link] (\uc.east) -- (supabase);
     \end{tikzpicture}
     \caption{Use case diagram illustrating system actors and core actions.}
     \label{fig:usecase}
@@ -456,54 +464,28 @@ The following screenshots illustrate the main user flows and interface states of
     \end{minipage}%
 }
 
-
 \begin{figure}[H]
     \centering
     \screenshottile{PhotosApplication/connexionInscription.jpg}{Login / registration}
     \hfill
-    \screenshottile{PhotosApplication/shimmerloadingeffect.jpeg}{Shimmer loading effect (Home Screen)}
+    \screenshottile{PhotosApplication/home.jpg}{Home}
     \hfill
-    \screenshottile{PhotosApplication/home.jpeg}{Home}
+    \screenshottile{PhotosApplication/groups.jpg}{Groups}
     \hfill
-    \\[0.5cm]
-    \screenshottile{PhotosApplication/groups.jpeg}{Groups}
-    \hfill
-    \screenshottile{PhotosApplication/creategroup.jpeg}{Group creation}
-    \hfill
-    \screenshottile{PhotosApplication/friends.jpeg}{Friends screen}
-    \hfill
-    \\[0.5cm]
+    \screenshottile{PhotosApplication/CreerGroupe.jpg}{Group creation}
+
+    \vspace{0.6cm}
+
     \screenshottile{PhotosApplication/profileavantmaj.jpg}{Profile before update}
-    \hfill
+    \hspace{0.05\textwidth}
     \screenshottile{PhotosApplication/Profilemaj.jpg}{Profile after update}
-    \hfill
+    \hspace{0.05\textwidth}
     \screenshottile{PhotosApplication/majmotdepasse.jpg}{Password update}
-    
-\end{figure}
-
-\clearpage
-
-\begin{figure}[H]\ContinuedFloat
-    \centering
-    \\[1cm]
-    \screenshottile{PhotosApplication/configgame.jpeg}{Game configuration}
-    \hfill
-    \screenshottile{PhotosApplication/activeround.jpeg}{Active round}
-    \hfill
-    \screenshottile{PhotosApplication/imagetobeguessed.jpeg}{Picture screen}
-    \\[1cm]
-
-    \screenshottile{PhotosApplication/makeguess.jpeg}{Guess location}
-    \hfill
-    \screenshottile{PhotosApplication/viewtruelocation.jpeg}{Real location revealed}
-    \hfill
-    \screenshottile{PhotosApplication/finishedgame.jpeg}{Finished game screen}
     \caption{Main application screens.}
     \label{fig:application-screenshots}
 \end{figure}
-\clearpage
-\newpage
 
+\newpage
 
 % ==========================================
 % SECTION 5: TESTING AND RESULTS
