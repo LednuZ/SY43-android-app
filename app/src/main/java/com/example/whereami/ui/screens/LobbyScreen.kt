@@ -43,6 +43,13 @@ fun LobbyScreen(
 
     val uiState by viewModel.uiState.collectAsState()
 
+    LaunchedEffect(uiState.hasLeftGroup) {
+        if (uiState.hasLeftGroup) {
+            onNavigateUp()
+            viewModel.resetLeaveState()
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -113,8 +120,21 @@ fun LobbyScreen(
                                 }
                             }
                         } else {
+                            val canStartGame = uiState.members.size > 1
+                            
+                            if (!canStartGame) {
+                                Text(
+                                    text = "You need at least 2 members to start a game.",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.outline,
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                )
+                            }
+                            
                             Button(
                                 onClick = onCreateGameClick,
+                                enabled = canStartGame,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(vertical = 16.dp),
@@ -186,6 +206,38 @@ fun LobbyScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(if (membersExpanded) "See Less" else "See More (${uiState.members.size - 3})")
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(48.dp))
+
+                    if (uiState.activeGame == null) {
+                        OutlinedButton(
+                            onClick = { viewModel.leaveGroup() },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                            enabled = !uiState.isLeavingGroup
+                        ) {
+                            if (uiState.isLeavingGroup) {
+                                CircularProgressIndicator(modifier = Modifier.size(18.dp), color = MaterialTheme.colorScheme.error)
+                            } else {
+                                Text("Leave Group")
+                            }
+                        }
+                    } else {
+                        Text(
+                            text = "You cannot leave while a game is in progress.",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                        OutlinedButton(
+                            onClick = { },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = false
+                        ) {
+                            Text("Leave Group")
                         }
                     }
                 }

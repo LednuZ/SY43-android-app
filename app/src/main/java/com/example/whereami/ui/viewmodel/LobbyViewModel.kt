@@ -33,6 +33,8 @@ data class LobbyUiState(
     val isAddMemberDialogVisible: Boolean = false,
     val availableFriendsToAdd: List<User> = emptyList(),
     val isAddingMember: Boolean = false,
+    val isLeavingGroup: Boolean = false,
+    val hasLeftGroup: Boolean = false,
     val currentUserId: String? = null
 )
 
@@ -112,6 +114,31 @@ class LobbyViewModel(
                 )
             }
         }
+    }
+
+    fun leaveGroup() {
+        val groupId = initializedGroupId ?: return
+        val userId = _uiState.value.currentUserId ?: return
+        
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLeavingGroup = true)
+            val result = groupRepository.removeMember(groupId, userId)
+            if (result.isSuccess) {
+                _uiState.value = _uiState.value.copy(
+                    isLeavingGroup = false,
+                    hasLeftGroup = true
+                )
+            } else {
+                _uiState.value = _uiState.value.copy(
+                    isLeavingGroup = false,
+                    error = result.exceptionOrNull()?.message ?: "Failed to leave group"
+                )
+            }
+        }
+    }
+
+    fun resetLeaveState() {
+        _uiState.value = _uiState.value.copy(hasLeftGroup = false)
     }
 
     companion object {
