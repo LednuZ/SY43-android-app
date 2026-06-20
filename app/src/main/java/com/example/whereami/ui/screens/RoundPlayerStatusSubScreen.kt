@@ -1,20 +1,17 @@
 package com.example.whereami.ui.screens
 
-import android.Manifest
-import android.content.pm.PackageManager
-import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat
 import androidx.compose.ui.unit.dp
 import com.example.whereami.domain.model.PlayerBox
 import com.example.whereami.ui.viewmodel.RoundUiState
@@ -23,11 +20,8 @@ import com.example.whereami.ui.viewmodel.RoundUiState
 fun RoundPlayerStatusSubScreen(
     uiState: RoundUiState,
     onBoxSelected: (PlayerBox) -> Unit,
-    imagePickerLauncher: ManagedActivityResultLauncher<String, android.net.Uri?>,
-    permissionLauncher: ManagedActivityResultLauncher<String, Boolean>
+    onTakePhotoClick: () -> Unit
 ) {
-    val context = LocalContext.current
-
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         if (!uiState.currentUserHasUploaded) {
             Card(
@@ -36,22 +30,18 @@ fun RoundPlayerStatusSubScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("You must upload a picture before guessing!", color = MaterialTheme.colorScheme.onErrorContainer)
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
                     Button(
-                        onClick = {
-                            val hasPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                            if (hasPermission) {
-                                imagePickerLauncher.launch("image/*")
-                            } else {
-                                permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-                            }
-                        },
-                        enabled = !uiState.isUploadingPicture
+                        onClick = onTakePhotoClick,
+                        enabled = !uiState.isUploadingPicture,
+                        modifier = Modifier.height(56.dp)
                     ) {
                         if (uiState.isUploadingPicture) {
-                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                         } else {
-                            Text("Upload Picture")
+                            Icon(Icons.Default.PhotoCamera, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Take a photo")
                         }
                     }
                 }
@@ -67,7 +57,7 @@ fun RoundPlayerStatusSubScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp)
-                    .clickable(enabled = myBox.hasUploaded) {
+                    .clickable {
                         onBoxSelected(myBox)
                     },
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)

@@ -6,7 +6,6 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.google.gms.google.services)
 }
 
 val localProperties = Properties()
@@ -94,5 +93,6 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.osmdroid.android)
     implementation(libs.coil.compose)
+
     implementation("com.google.android.gms:play-services-location:21.3.0")
 }
