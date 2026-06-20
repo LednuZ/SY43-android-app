@@ -1,5 +1,6 @@
 package com.example.whereami.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -46,21 +47,44 @@ fun AppNavHost(
     modifier : Modifier = Modifier,
 )
 {
+    val routeOrder = listOf(
+        HomeDestination.route,
+        GroupsDestination.route,
+        FriendsDestination.route,
+        AccountDestination.route
+    )
+
     NavHost(
         navController=navController,
         startDestination = HomeDestination.route,
         modifier = modifier,
         enterTransition = {
-            slideInHorizontally(
-                initialOffsetX = { it },
-                animationSpec = tween(300)
-            ) + fadeIn(animationSpec = tween(300))
+            val initialRoute = initialState.destination.route
+            val targetRoute = targetState.destination.route
+
+            val initialIndex = routeOrder.indexOf(initialRoute)
+            val targetIndex = routeOrder.indexOf(targetRoute)
+
+            // Si la nouvelle destination est après l'ancienne, on glisse vers la gauche (SlideLeft)
+            if (initialIndex < targetIndex) {
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, animationSpec = tween(300))
+            } else {
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right, animationSpec = tween(300))
+            }
+
         },
         exitTransition = {
-            slideOutHorizontally(
-                targetOffsetX = { -it / 3 },
-                animationSpec = tween(300)
-            ) + fadeOut(animationSpec = tween(300))
+            val initialRoute = initialState.destination.route
+            val targetRoute = targetState.destination.route
+
+            val initialIndex = routeOrder.indexOf(initialRoute)
+            val targetIndex = routeOrder.indexOf(targetRoute)
+
+            if (initialIndex < targetIndex) {
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left, animationSpec = tween(300))
+            } else {
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, animationSpec = tween(300))
+            }
         },
         popEnterTransition = {
             slideInHorizontally(
