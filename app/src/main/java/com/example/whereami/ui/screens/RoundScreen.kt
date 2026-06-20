@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.*
 import androidx.core.content.FileProvider
 import java.io.File
 import androidx.compose.material.icons.Icons
-import androidx.compose.material    .icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
@@ -33,12 +33,6 @@ import com.example.whereami.navigation.NavigationDestination
 import com.example.whereami.ui.viewmodel.RoundViewModel
 import com.example.whereami.domain.model.PlayerBox
 import org.osmdroid.config.Configuration
-import org.osmdroid.events.MapEventsReceiver
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory
-import org.osmdroid.util.GeoPoint
-import org.osmdroid.views.MapView
-import org.osmdroid.views.overlay.MapEventsOverlay
-import org.osmdroid.views.overlay.Marker
 
 object RoundDestination : NavigationDestination {
     override val route = "round/{gameId}/{roundId}"
@@ -91,7 +85,7 @@ fun RoundScreen(
             val diff = endTime - now
             timeLeft = formatTimeLeft(diff)
             if (!diff.isPositive()) break
-            kotlinx.coroutines.delay(1000)
+            kotlinx.coroutines.delay(1000L)
         }
     }
     

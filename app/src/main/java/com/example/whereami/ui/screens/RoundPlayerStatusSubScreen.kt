@@ -1,8 +1,5 @@
 package com.example.whereami.ui.screens
 
-import android.Manifest
-import android.content.pm.PackageManager
-import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -15,8 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat
 import androidx.compose.ui.unit.dp
 import com.example.whereami.domain.model.PlayerBox
 import com.example.whereami.ui.viewmodel.RoundUiState
@@ -27,8 +22,6 @@ fun RoundPlayerStatusSubScreen(
     onBoxSelected: (PlayerBox) -> Unit,
     onTakePhotoClick: () -> Unit
 ) {
-    val context = LocalContext.current
-
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         if (!uiState.currentUserHasUploaded) {
             Card(
