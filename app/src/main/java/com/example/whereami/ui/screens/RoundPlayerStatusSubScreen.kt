@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,8 +25,7 @@ import com.example.whereami.ui.viewmodel.RoundUiState
 fun RoundPlayerStatusSubScreen(
     uiState: RoundUiState,
     onBoxSelected: (PlayerBox) -> Unit,
-    imagePickerLauncher: ManagedActivityResultLauncher<String, android.net.Uri?>,
-    permissionLauncher: ManagedActivityResultLauncher<String, Boolean>
+    onTakePhotoClick: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -36,20 +37,18 @@ fun RoundPlayerStatusSubScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("You must upload a picture before guessing!", color = MaterialTheme.colorScheme.onErrorContainer)
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
                     Button(
-                        onClick = {
-                            val myBox = uiState.playerBoxes.find { it.user.id == uiState.currentUserId }
-                            if (myBox != null) {
-                                onBoxSelected(myBox)
-                            }
-                        },
-                        enabled = !uiState.isUploadingPicture
+                        onClick = onTakePhotoClick,
+                        enabled = !uiState.isUploadingPicture,
+                        modifier = Modifier.height(56.dp)
                     ) {
                         if (uiState.isUploadingPicture) {
-                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                         } else {
-                            Text("Take / Upload Picture")
+                            Icon(Icons.Default.PhotoCamera, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Take a photo")
                         }
                     }
                 }

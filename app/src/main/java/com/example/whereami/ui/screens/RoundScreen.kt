@@ -6,12 +6,15 @@ import com.example.whereami.util.formatTimeLeft
 import com.google.android.gms.location.Priority
 import android.Manifest
 import android.location.Location
+import android.location.LocationManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.core.content.FileProvider
+import java.io.File
 import androidx.compose.material.icons.Icons
 import androidx.compose.material    .icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
@@ -102,40 +105,97 @@ fun RoundScreen(
     
     var selectedBox by remember { mutableStateOf<PlayerBox?>(null) }
     var currentPinLocation by remember { mutableStateOf<LatLng?>(null) }
+    var tempUri by remember { mutableStateOf<Uri?>(null) }
 
-    val imagePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            val bytes = context.contentResolver.openInputStream(it)?.readBytes()
-            if (bytes != null) {
-                val hasPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                
-                if (hasPermission) {
-                    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-                    fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null).addOnSuccessListener { loc: Location? ->
-                        if (loc != null) {
-                            viewModel.uploadPicture(LatLng(loc.latitude, loc.longitude), bytes)
-                        } else {
-                            viewModel.showError("Could not retrieve location. Please ensure Location Services (GPS) is turned on and try again.")
-                        }
-                    }.addOnFailureListener { e ->
-                        viewModel.showError("Failed to get location: ${e.message}")
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            tempUri?.let { uri ->
+                val bytes = try {
+                    context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                } catch (_: Exception) {
+                    null
+                }
+
+                if (bytes != null) {
+                    val hasPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                    if (hasPermission) {
+                        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+                        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+                            .addOnSuccessListener { loc ->
+                                // If location is null, we use a default one to at least allow the upload
+                                val locationToUse = loc ?: Location("default").apply {
+                                    latitude = 0.0
+                                    longitude = 0.0
+                                }
+                                viewModel.uploadPicture(LatLng(locationToUse.latitude, locationToUse.longitude), bytes)
+                                currentSubScreen = RoundSubScreen.BOXES
+                            }
+                            .addOnFailureListener { e ->
+                                // Even if GPS fails, we try to upload with 0,0 or show error
+                                viewModel.showError("Location failed, using default: ${e.message}")
+                                viewModel.uploadPicture(LatLng(0.0, 0.0), bytes)
+                                currentSubScreen = RoundSubScreen.BOXES
+                            }
+                    } else {
+                        viewModel.showError("GPS permission required.")
                     }
                 } else {
-                    viewModel.showError("Location permission is required to upload a picture.")
+                    viewModel.showError("Failed to read captured image.")
                 }
             }
         }
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            imagePickerLauncher.launch("image/*")
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val cameraGranted = permissions[Manifest.permission.CAMERA] ?: false
+        val locationGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false
+        
+        if (cameraGranted && locationGranted) {
+            val file = File(context.cacheDir, "images").apply { mkdirs() }
+            val imageFile = File(file, "round_${System.currentTimeMillis()}.jpg")
+            val uri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                imageFile
+            )
+            tempUri = uri
+            cameraLauncher.launch(uri)
         } else {
-            imagePickerLauncher.launch("image/*")
+            viewModel.showError("Camera and Location permissions are required to take a photo.")
+        }
+    }
+
+    val onTakePhotoClick = {
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+        val isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+
+        if (!isGpsEnabled && !isNetworkEnabled) {
+            viewModel.showError("Location services are disabled. Please enable GPS to take a photo.")
+        } else {
+            val hasCameraPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+            val hasLocationPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+
+            if (hasCameraPermission && hasLocationPermission) {
+                val file = File(context.cacheDir, "images").apply { mkdirs() }
+                val imageFile = File(file, "round_${System.currentTimeMillis()}.jpg")
+                val uri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.fileprovider",
+                    imageFile
+                )
+                tempUri = uri
+                cameraLauncher.launch(uri)
+            } else {
+                permissionLauncher.launch(arrayOf(
+                    Manifest.permission.CAMERA,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ))
+            }
         }
     }
 
@@ -204,8 +264,7 @@ fun RoundScreen(
                                     selectedBox = box
                                     currentSubScreen = RoundSubScreen.PICTURE_VIEW
                                 },
-                                imagePickerLauncher = imagePickerLauncher,
-                                permissionLauncher = permissionLauncher
+                                onTakePhotoClick = onTakePhotoClick
                             )
                         }
                         RoundSubScreen.PICTURE_VIEW -> {
@@ -214,27 +273,7 @@ fun RoundScreen(
                                     uiState = uiState,
                                     selectedBox = selectedBox!!,
                                     onNavigateToMap = { currentSubScreen = RoundSubScreen.MAP_VIEW },
-                                    onPictureCaptured = { uri ->
-                                        val bytes = try {
-                                            context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
-                                        } catch (_: Exception) {
-                                            null
-                                        }
-
-                                        if (bytes != null) {
-                                            val hasPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                                            if (hasPermission) {
-                                                val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-                                                fusedLocationClient.lastLocation.addOnSuccessListener { lastLoc ->
-                                                    val locationToUse = lastLoc ?: Location("").apply { latitude = 0.0; longitude = 0.0 }
-                                                    viewModel.uploadPicture(LatLng(locationToUse.latitude, locationToUse.longitude), bytes)
-                                                    currentSubScreen = RoundSubScreen.BOXES
-                                                }
-                                            } else {
-                                                viewModel.showError("Permission GPS requise.")
-                                            }
-                                        }
-                                    }
+                                    onTakePhotoClick = onTakePhotoClick
                                 )
                             }
                         }
