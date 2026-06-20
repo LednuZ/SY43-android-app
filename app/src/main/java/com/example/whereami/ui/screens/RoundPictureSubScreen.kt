@@ -17,7 +17,6 @@ import coil.compose.AsyncImage
 import com.example.whereami.domain.model.PlayerBox
 import com.example.whereami.ui.viewmodel.RoundUiState
 import java.io.File
-import android.widget.Toast
 
 @Composable
 fun RoundPictureSubScreen(

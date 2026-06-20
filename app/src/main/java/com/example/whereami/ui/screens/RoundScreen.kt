@@ -2,25 +2,19 @@ package com.example.whereami.ui.screens
 
 import android.annotation.SuppressLint
 import com.google.android.gms.location.LocationServices
-import com.example.whereami.util.toAppError
 import com.example.whereami.util.formatTimeLeft
 import com.google.android.gms.location.Priority
 import android.Manifest
 import android.location.Location
 import android.content.Context
 import android.content.pm.PackageManager
-import android.location.LocationManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material    .icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.animation.Crossfade
@@ -31,12 +25,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
 import com.example.whereami.domain.model.util.LatLng
 import com.example.whereami.navigation.NavigationDestination
 import com.example.whereami.ui.viewmodel.RoundViewModel
 import com.example.whereami.domain.model.PlayerBox
-import java.io.File
 import org.osmdroid.config.Configuration
 import org.osmdroid.events.MapEventsReceiver
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
@@ -127,8 +119,8 @@ fun RoundScreen(
                         } else {
                             viewModel.showError("Could not retrieve location. Please ensure Location Services (GPS) is turned on and try again.")
                         }
-                    }.addOnFailureListener {
-                        viewModel.showError("Failed to get location: ${it.message}")
+                    }.addOnFailureListener { e ->
+                        viewModel.showError("Failed to get location: ${e.message}")
                     }
                 } else {
                     viewModel.showError("Location permission is required to upload a picture.")
@@ -180,7 +172,7 @@ fun RoundScreen(
                     NavigationBarItem(
                         selected = currentSubScreen == RoundSubScreen.BOXES,
                         onClick = { currentSubScreen = RoundSubScreen.BOXES },
-                        icon = { Icon(Icons.Filled.List, contentDescription = "Pictures") },
+                        icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Pictures") },
                         label = { Text("Pictures") }
                     )
                     NavigationBarItem(
@@ -225,7 +217,7 @@ fun RoundScreen(
                                     onPictureCaptured = { uri ->
                                         val bytes = try {
                                             context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
-                                        } catch (e: Exception) {
+                                        } catch (_: Exception) {
                                             null
                                         }
 
@@ -263,43 +255,44 @@ fun RoundScreen(
                             }
                         }
                         RoundSubScreen.SCORES -> {
-                        if (uiState.round?.status == com.example.whereami.domain.model.RoundStatus.FINISHED) {
-                            val playerScores = uiState.round?.scoreSheets?.map { score ->
-                                val userBox = uiState.playerBoxes.find { it.user.id == score.playerId }
-                                val username = userBox?.user?.username ?: "Unknown"
-                                val avatarUrl = userBox?.user?.profilePicture
-                                com.example.whereami.ui.components.PlayerScoreDisplay(username, score.score, avatarUrl)
-                            } ?: emptyList()
-                            Column(
-                                modifier = Modifier.fillMaxSize().padding(16.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Box(modifier = Modifier.weight(1f)) {
-                                    com.example.whereami.ui.components.ScoresPodiumList(playerScores = playerScores)
-                                }
-                                
-                                val nextRound = uiState.game?.rounds?.find { it.index == (uiState.round?.index ?: -1) + 1 }
-                                if (nextRound != null) {
-                                    Button(
-                                        onClick = {
-                                            onNavigateToRound(gameId, nextRound.id)
-                                        },
-                                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
-                                    ) {
-                                        Text("Next Round")
+                            if (uiState.round?.status == com.example.whereami.domain.model.RoundStatus.FINISHED) {
+                                val playerScores = uiState.round?.scoreSheets?.map { score ->
+                                    val userBox = uiState.playerBoxes.find { it.user.id == score.playerId }
+                                    val username = userBox?.user?.username ?: "Unknown"
+                                    val avatarUrl = userBox?.user?.profilePicture
+                                    com.example.whereami.ui.components.PlayerScoreDisplay(username, score.score, avatarUrl)
+                                } ?: emptyList()
+                                Column(
+                                    modifier = Modifier.fillMaxSize().padding(16.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        com.example.whereami.ui.components.ScoresPodiumList(playerScores = playerScores)
                                     }
-                                } else {
-                                    Button(
-                                        onClick = onNavigateUp,
-                                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
-                                    ) {
-                                        Text("Back to Game Details")
+                                    
+                                    val nextRound = uiState.game?.rounds?.find { it.index == (uiState.round?.index ?: -1) + 1 }
+                                    if (nextRound != null) {
+                                        Button(
+                                            onClick = {
+                                                onNavigateToRound(gameId, nextRound.id)
+                                            },
+                                            modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+                                        ) {
+                                            Text("Next Round")
+                                        }
+                                    } else {
+                                        Button(
+                                            onClick = onNavigateUp,
+                                            modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+                                        ) {
+                                            Text("Back to Game Details")
+                                        }
                                     }
                                 }
-                            }
-                        } else {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Text("The round is not finished yet", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
+                            } else {
+                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    Text("The round is not finished yet", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
+                                }
                             }
                         }
                     }
@@ -307,5 +300,4 @@ fun RoundScreen(
             }
         }
     }
-}
 }
